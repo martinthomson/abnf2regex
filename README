@@ -1,0 +1,18 @@
+ABNF 2 REGEX
+
+Creates a regular expression from RFC 5234 ABNF.
+
+This is a java package, that can be build as an OSGi bundle.  Source is provided as an Eclipse project.  Test code is in a separate project that builds an OSGi fragment bundle, hosted by the first.  If you don't care for OSGi, that's OK, OSGi bundles are regular jar files.  The main jar file includes a Main-Class directive so that it can be run directly.
+
+
+ * TODO Complete test harnesses.
+
+ * TODO Add options to select a particular pattern for output, rather than simply printing the entire file with regular expressions in ABNF comments.
+
+ * TODO Add options to allow capture parentheses to be used for certain patterns instead of the non-capturing groups
+ * currently used.
+
+ * TODO Add options to set different regex schemes, Java, Perl, Javascript, sed, etc...
+
+ * TODO Complete javadoc on all classses.
+

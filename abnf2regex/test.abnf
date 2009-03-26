@@ -1,0 +1,2 @@
+latitude = ["-"] (("90" [ "." *"0"]) / [ %x30-38 ] DIGIT [ "." *DIGIT ])
+longitude = ["-"] (("180" [ "." *"0"]) / [ ("1" %x30-37 ) / DIGIT ] DIGIT [ "." *DIGIT ])

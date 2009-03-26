@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: ABNF 2 Regex Converter Plug-in
+Bundle-SymbolicName: abnf2regex
+Bundle-Version: 1.0.0
+Bundle-Vendor: Martin Thomson
+Main-Class: net.abnf2regex.Abnf2Regex
