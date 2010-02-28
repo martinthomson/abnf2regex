@@ -1,0 +1,218 @@
+; RFC 5322 ABNF with the obsolete elements removed
+
+quoted-pair     =   "\" (VCHAR / WSP)
+
+FWS             =   [*WSP CRLF] 1*WSP
+                                       ; Folding white space
+
+ctext           =   %d33-39 /          ; Printable US-ASCII
+                    %d42-91 /          ;  characters not including
+                    %d93-126           ;  "(", ")", or "\"
+
+ccontent        =   ctext / quoted-pair / comment
+
+comment         =   "(" *([FWS] ccontent) [FWS] ")"
+
+CFWS            =   (1*([FWS] comment) [FWS]) / FWS
+
+atext           =   ALPHA / DIGIT /    ; Printable US-ASCII
+                    "!" / "#" /        ;  characters not including
+                    "$" / "%" /        ;  specials.  Used for atoms.
+                    "&" / "'" /
+                    "*" / "+" /
+                    "-" / "/" /
+                    "=" / "?" /
+                    "^" / "_" /
+                    "`" / "{" /
+                    "|" / "}" /
+                    "~"
+
+atom            =   [CFWS] 1*atext [CFWS]
+
+dot-atom-text   =   1*atext *("." 1*atext)
+
+dot-atom        =   [CFWS] dot-atom-text [CFWS]
+
+specials        =   "(" / ")" /        ; Special characters that do
+                    "<" / ">" /        ;  not appear in atext
+                    "[" / "]" /
+                    ":" / ";" /
+                    "@" / "\" /
+                    "," / "." /
+                    DQUOTE
+
+qtext           =   %d33 /             ; Printable US-ASCII
+                    %d35-91 /          ;  characters not including
+                    %d93-126           ;  "\" or the quote character
+
+qcontent        =   qtext / quoted-pair
+
+quoted-string   =   [CFWS]
+                    DQUOTE *([FWS] qcontent) [FWS] DQUOTE
+                    [CFWS]
+
+word            =   atom / quoted-string
+
+phrase          =   1*word
+
+unstructured    =   *([FWS] VCHAR) *WSP
+
+date-time       =   [ day-of-week "," ] date time [CFWS]
+
+day-of-week     =   [FWS] day-name
+
+day-name        =   "Mon" / "Tue" / "Wed" / "Thu" /
+                    "Fri" / "Sat" / "Sun"
+
+date            =   day month year
+
+day             =   [FWS] 1*2DIGIT FWS
+
+month           =   "Jan" / "Feb" / "Mar" / "Apr" /
+                    "May" / "Jun" / "Jul" / "Aug" /
+                    "Sep" / "Oct" / "Nov" / "Dec"
+
+year            =   FWS 4*DIGIT FWS
+
+time            =   time-of-day zone
+
+time-of-day     =   hour ":" minute [ ":" second ]
+
+hour            =   2DIGIT
+
+minute          =   2DIGIT
+
+second          =   2DIGIT
+
+zone            =   FWS ( "+" / "-" ) 4DIGIT
+
+address         =   mailbox / group
+
+mailbox         =   name-addr / addr-spec
+
+name-addr       =   [display-name] angle-addr
+
+angle-addr      =   [CFWS] "<" addr-spec ">" [CFWS]
+
+group           =   display-name ":" [group-list] ";" [CFWS]
+
+display-name    =   phrase
+
+mailbox-list    =   mailbox *("," mailbox)
+
+address-list    =   address *("," address)
+
+group-list      =   mailbox-list / CFWS
+
+addr-spec       =   local-part "@" domain
+
+local-part      =   dot-atom / quoted-string
+
+domain          =   dot-atom / domain-literal
+
+domain-literal  =   [CFWS] "[" *([FWS] dtext) [FWS] "]" [CFWS]
+
+dtext           =   %d33-90 /          ; Printable US-ASCII
+                    %d94-126           ;  characters not including
+                                       ;  "[", "]", or "\"
+
+message         =   fields [CRLF body]
+
+body            =   *(*998text CRLF) *998text
+
+text            =   %d1-9 /            ; Characters excluding CR
+                    %d11 /             ;  and LF
+                    %d12 /
+                    %d14-127
+
+fields          =   *(trace
+                      *optional-field /
+                      *(resent-date /
+                       resent-from /
+                       resent-sender /
+                       resent-to /
+                       resent-cc /
+                       resent-bcc /
+                       resent-msg-id))
+                    *(orig-date /
+                    from /
+                    sender /
+                    reply-to /
+                    to /
+                    cc /
+                    bcc /
+                    message-id /
+                    in-reply-to /
+                    references /
+                    subject /
+                    comments /
+                    keywords /
+                    optional-field)
+
+orig-date       =   "Date:" date-time CRLF
+
+from            =   "From:" mailbox-list CRLF
+
+sender          =   "Sender:" mailbox CRLF
+
+reply-to        =   "Reply-To:" address-list CRLF
+
+to              =   "To:" address-list CRLF
+
+cc              =   "Cc:" address-list CRLF
+
+bcc             =   "Bcc:" [address-list / CFWS] CRLF
+
+message-id      =   "Message-ID:" msg-id CRLF
+
+in-reply-to     =   "In-Reply-To:" 1*msg-id CRLF
+
+references      =   "References:" 1*msg-id CRLF
+
+msg-id          =   [CFWS] "<" id-left "@" id-right ">" [CFWS]
+
+id-left         =   dot-atom-text
+
+id-right        =   dot-atom-text / no-fold-literal
+
+no-fold-literal =   "[" *dtext "]"
+
+subject         =   "Subject:" unstructured CRLF
+
+comments        =   "Comments:" unstructured CRLF
+
+keywords        =   "Keywords:" phrase *("," phrase) CRLF
+
+resent-date     =   "Resent-Date:" date-time CRLF
+
+resent-from     =   "Resent-From:" mailbox-list CRLF
+
+resent-sender   =   "Resent-Sender:" mailbox CRLF
+
+resent-to       =   "Resent-To:" address-list CRLF
+
+resent-cc       =   "Resent-Cc:" address-list CRLF
+
+resent-bcc      =   "Resent-Bcc:" [address-list / CFWS] CRLF
+
+resent-msg-id   =   "Resent-Message-ID:" msg-id CRLF
+
+trace           =   [return]
+                    1*received
+
+return          =   "Return-Path:" path CRLF
+
+path            =   angle-addr / ([CFWS] "<" [CFWS] ">" [CFWS])
+
+received        =   "Received:" *received-token ";" date-time CRLF
+
+received-token  =   word / angle-addr / addr-spec / domain
+
+optional-field  =   field-name ":" unstructured CRLF
+
+field-name      =   1*ftext
+
+ftext           =   %d33-57 /          ; Printable US-ASCII
+                    %d59-126           ;  characters not including
+                                       ;  ":".
+
