@@ -94,15 +94,16 @@ public class OccurenceRangeTest
     }
 
     /**
-     * Test method for {@link net.abnf2regex.OccurenceRange#isOneOnly()}.
+     * Test method for {@link net.abnf2regex.OccurenceRange#isOnce()}.
      */
     @Test
     public void testIsOneOnly()
     {
-        Assert.assertTrue(new OccurenceRange(1, 1).isOneOnly());
-        Assert.assertFalse(new OccurenceRange(1, 2).isOneOnly());
-        Assert.assertFalse(new OccurenceRange(0, 1).isOneOnly());
-        Assert.assertFalse(new OccurenceRange(3, -5).isOneOnly());
+        Assert.assertTrue(new OccurenceRange(1, 1).isOnce());
+        Assert.assertTrue(OccurenceRange.ONCE.isOnce());
+        Assert.assertFalse(new OccurenceRange(1, 2).isOnce());
+        Assert.assertFalse(new OccurenceRange(0, 1).isOnce());
+        Assert.assertFalse(new OccurenceRange(3, -5).isOnce());
     }
 
     /**
@@ -130,6 +131,45 @@ public class OccurenceRangeTest
         OccurenceRange or = new OccurenceRange(2, 3);
         Assert.assertEquals(Integer.valueOf(2), Integer.valueOf(or.getMin()));
         Assert.assertEquals(Integer.valueOf(3), Integer.valueOf(or.getMax()));
+    }
+
+    /**
+     * Check {@link net.abnf2regex.OccurenceRange#add(OccurenceRange)} method.
+     */
+    @Test
+    public void testAdd()
+    {
+        Assert.assertEquals(new OccurenceRange(4, 5), new OccurenceRange(1, 2).add(new OccurenceRange(3, 3)));
+        Assert.assertEquals(new OccurenceRange(4, OccurenceRange.UNBOUNDED),
+                            new OccurenceRange(1, OccurenceRange.UNBOUNDED).add(new OccurenceRange(3, 3)));
+        Assert.assertEquals(new OccurenceRange(4, OccurenceRange.UNBOUNDED), new OccurenceRange(1, 2)
+                        .add(new OccurenceRange(3, OccurenceRange.UNBOUNDED)));
+    }
+
+    /**
+     * Check {@link net.abnf2regex.OccurenceRange#multiply(OccurenceRange)} method.
+     */
+    @Test
+    public void testMultiply()
+    {
+        Assert.assertEquals(new OccurenceRange(6, 6), new OccurenceRange(2, 2).multiply(new OccurenceRange(3, 3)));
+        Assert.assertEquals(new OccurenceRange(4, OccurenceRange.UNBOUNDED),
+                            new OccurenceRange(1, OccurenceRange.UNBOUNDED)
+                                            .multiply(new OccurenceRange(4, OccurenceRange.UNBOUNDED)));
+        Assert.assertEquals(new OccurenceRange(4, OccurenceRange.UNBOUNDED),
+                            new OccurenceRange(4, OccurenceRange.UNBOUNDED)
+                                            .multiply(new OccurenceRange(1, OccurenceRange.UNBOUNDED)));
+        Assert.assertEquals(new OccurenceRange(2, 3), OccurenceRange.ONCE.multiply(new OccurenceRange(2, 3)));
+        Assert.assertEquals(new OccurenceRange(4, 5), new OccurenceRange(4, 5).multiply(OccurenceRange.ONCE));
+        Assert.assertEquals(new OccurenceRange(2, OccurenceRange.UNBOUNDED), OccurenceRange.ONCE
+                        .multiply(new OccurenceRange(2, OccurenceRange.UNBOUNDED)));
+        Assert.assertEquals(new OccurenceRange(4, OccurenceRange.UNBOUNDED),
+                            new OccurenceRange(4, OccurenceRange.UNBOUNDED).multiply(OccurenceRange.ONCE));
+        Assert.assertNull(new OccurenceRange(1, 2).multiply(new OccurenceRange(3, 3)));
+        Assert.assertNull(new OccurenceRange(2, OccurenceRange.UNBOUNDED)
+                        .multiply(new OccurenceRange(3, OccurenceRange.UNBOUNDED)));
+        Assert.assertNull(new OccurenceRange(2, OccurenceRange.UNBOUNDED)
+                        .multiply(new OccurenceRange(3, OccurenceRange.UNBOUNDED)));
     }
 
     /**
@@ -238,6 +278,16 @@ public class OccurenceRangeTest
         Assert.assertFalse(new OccurenceRange(6, 7).equals(new OccurenceRange(6, 8)));
         Assert.assertFalse(new OccurenceRange(9, 10).equals(new OccurenceRange(11, 10)));
         Assert.assertFalse(new OccurenceRange(12, 12).equals("hello world")); //$NON-NLS-1$
+    }
+
+    /**
+     * Check {@link net.abnf2regex.OccurenceRange#toString()} method.
+     */
+    @Test
+    public void testToString()
+    {
+        Assert.assertEquals("4-5", new OccurenceRange(4, 5).toString()); //$NON-NLS-1$
+        Assert.assertEquals("4+", new OccurenceRange(4, -5).toString()); //$NON-NLS-1$
     }
 
 }

@@ -14,7 +14,7 @@ import java.util.Set;
 
 /**
  * A named fragment references another rule by name. Initially, instances of this class are unresolved and any attempt
- * to generate a regular expresstion throw a {@link RuleResolutionException}. The rule must be resolved by calling
+ * to generate a regular expression throw a {@link RuleResolutionException}. The rule must be resolved by calling
  * {@link #resolve(Rule)}.
  */
 public class NamedFragment extends RuleFragment
@@ -68,10 +68,7 @@ public class NamedFragment extends RuleFragment
             NamedFragment nf = (NamedFragment) frag;
             if (nf.getName().equals(this.getName()))
             {
-                OccurenceRange newRange =
-                    new OccurenceRange(this.getOccurences().getMin() + nf.getOccurences().getMin(), this.getOccurences().getMax() +
-                                                                                            nf.getOccurences().getMax());
-                this.setOccurences(newRange);
+                this.setOccurences(this.getOccurences().add(nf.getOccurences()));
                 return true;
             }
         }
@@ -111,17 +108,6 @@ public class NamedFragment extends RuleFragment
      */
     @Override
     protected boolean needsAbnfParens()
-    {
-        return false;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#needsRegexParens()
-     */
-    @Override
-    protected boolean needsRegexParens()
     {
         return false;
     }

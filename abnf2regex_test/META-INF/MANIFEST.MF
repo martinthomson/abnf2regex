@@ -9,3 +9,4 @@ Require-Bundle: org.junit4,
  easymock,
  net.sf.cglib,
  junitext
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

@@ -22,7 +22,7 @@ public class Rule
     /** The name of the rule. */
     private final String name;
     /** A rule always has a sequence of fragments, used as a container for other fragments. */
-    private SequenceFragment mainFragment = new SequenceFragment();
+    private GroupFragment mainFragment = new SequenceFragment();
     /** When recursively creating regular expressions, this is used to indicate where recursion has occurred. */
     private static final Set<String> warned = new HashSet<String>();
 
@@ -71,7 +71,7 @@ public class Rule
      *
      * @return
      */
-    /* package private */SequenceFragment getMainFragment()
+    /* package private */GroupFragment getMainFragment()
     {
         return this.mainFragment;
     }
@@ -102,7 +102,8 @@ public class Rule
                 System.err.println("Warning: rule '" + this.getName() + "' recurses."); //$NON-NLS-1$ //$NON-NLS-2$
                 Rule.warned.add(this.getName());
             }
-            pw.print("(.*)"); //$NON-NLS-1$
+            RegexSyntax syntax = RegexSyntax.getCurrent();
+            pw.print(syntax.getWildcard() +  syntax.getOccurenceAny());
             return;
         }
 

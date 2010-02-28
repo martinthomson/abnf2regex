@@ -29,11 +29,7 @@ public class SequenceFragment extends GroupFragment
         if (frag instanceof SequenceFragment)
         {
             SequenceFragment seq = (SequenceFragment) frag;
-            if (frag.getOccurences().isOneOnly())
-            {
-                this.fragments.addAll(seq.fragments);
-            }
-            else
+            if (!this.appendAll(seq))
             {
                 this.fragments.addLast(frag);
             }
@@ -46,7 +42,8 @@ public class SequenceFragment extends GroupFragment
     }
 
     /**
-     * Merge the given fragment with the last fragment.  The fragment is appended to the last instance if they are both of the same type.
+     * Merge the given fragment with the last fragment. The fragment is appended to the last instance if they are both
+     * of the same type.
      *
      * @param frag the fragment to append.
      * @return true iff the merge was successful
@@ -56,7 +53,7 @@ public class SequenceFragment extends GroupFragment
         if (this.fragments.size() > 0)
         {
             RuleFragment last = this.fragments.getLast();
-            if (last.getClass().isAssignableFrom(frag.getClass()))
+            if (last.getOccurences().equals(frag.getOccurences()) && last.getClass().isAssignableFrom(frag.getClass()))
             {
                 return last.append(frag);
             }
@@ -72,21 +69,40 @@ public class SequenceFragment extends GroupFragment
     @Override
     protected StringBuilder buildAbnf(StringBuilder bld)
     {
+        boolean started = false;
         for (RuleFragment frag : this.fragments)
         {
-            bld.append(frag.toAbnf()).append(' ');
+            if (started)
+            {
+                bld.append(' ');
+            }
+            started = true;
+            bld.append(frag.toAbnf());
         }
-        bld.setLength(bld.length() - 1);
         return bld;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see net.abnf2regex.RuleFragment#needsAbnfParens()
      */
     @Override
     protected boolean needsAbnfParens()
     {
-        return this.length() != 1;
+        // if there is more than one, or if the one has a different number of occurences to this
+        return (this.length() > 1) ||
+               (this.length() == 1 && !this.getOccurences().isOnce() && !this.fragments.peekFirst().getOccurences()
+                               .isOnce());
+    }
+
+    /* (non-Javadoc)
+     * @see net.abnf2regex.RuleFragment#needsRegexParens()
+     */
+    @Override
+    protected boolean needsRegexParens()
+    {
+        return (this.length() != 1) && super.needsRegexParens();
     }
 
     /*
@@ -104,7 +120,8 @@ public class SequenceFragment extends GroupFragment
     }
 
     /**
-     * Replaces all of the fragments from this with all the fragments in 'last'.  Resets last to be empty.
+     * Replaces all of the fragments from this with all the fragments in 'last'. Resets last to be empty.
+     *
      * @param extractFrom the sequence to extract all fragments from
      */
     public void extractAll(SequenceFragment extractFrom)

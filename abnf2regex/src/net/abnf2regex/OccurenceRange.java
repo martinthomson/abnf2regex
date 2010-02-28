@@ -17,6 +17,10 @@ import java.io.IOException;
  */
 public class OccurenceRange
 {
+    /** A convenience for all those once comparisons. */
+    public static final OccurenceRange ONCE = new OccurenceRange(1, 1);
+    /** An unlimited number, used for maximum only */
+    public static final int UNBOUNDED = -1;
     /** The minimum number of occurences permitted. */
     private final int minOccurs;
     /** The maximum number of occurences permitted. A negative value indicates no upper bound on occurences. */
@@ -32,7 +36,7 @@ public class OccurenceRange
     {
         this.minOccurs = min;
         // normalization helps .equals work later
-        this.maxOccurs = (max < 0) ? -1 : Math.max(max, min);
+        this.maxOccurs = (max < 0) ? OccurenceRange.UNBOUNDED : Math.max(max, min);
     }
 
     private StringBuilder addAbnfOccurences(StringBuilder bld)
@@ -108,7 +112,7 @@ public class OccurenceRange
      *
      * @return true if {@link #minOccurs} and {@link #maxOccurs} are both 1.
      */
-    public boolean isOneOnly()
+    public boolean isOnce()
     {
         return this.minOccurs == 1 && this.maxOccurs == 1;
     }
@@ -121,37 +125,38 @@ public class OccurenceRange
     public String getRegexOccurences()
     {
         StringBuilder bld = new StringBuilder();
+        RegexSyntax syntax = RegexSyntax.getCurrent();
         if (this.minOccurs == this.maxOccurs)
         {
             if (this.minOccurs != 1)
             {
-                bld.append('{');
+                bld.append(syntax.getOccurencesStart());
                 bld.append(this.minOccurs);
-                bld.append('}');
+                bld.append(syntax.getOccurencesEnd());
             }
         }
         else if (this.minOccurs == 0 && this.maxOccurs == 1)
         {
-            bld.append('?');
+            bld.append(syntax.getOccurenceOptional());
         }
-        else if (this.minOccurs == 0 && this.maxOccurs < 0)
+        else if (this.minOccurs == 0 && this.maxOccurs == OccurenceRange.UNBOUNDED)
         {
-            bld.append('*');
+            bld.append(syntax.getOccurenceAny());
         }
-        else if (this.minOccurs == 1 && this.maxOccurs < 0)
+        else if (this.minOccurs == 1 && this.maxOccurs == OccurenceRange.UNBOUNDED)
         {
-            bld.append('+');
+            bld.append(syntax.getOccurenceOneOrMore());
         }
         else
         {
-            bld.append('{');
+            bld.append(syntax.getOccurencesStart());
             bld.append(this.minOccurs);
             bld.append(',');
             if (this.maxOccurs >= 0)
             {
                 bld.append(this.maxOccurs);
             }
-            bld.append('}');
+            bld.append(syntax.getOccurencesEnd());
         }
         return bld.toString();
     }
@@ -174,6 +179,53 @@ public class OccurenceRange
     public int getMax()
     {
         return this.maxOccurs;
+    }
+
+    /**
+     * Add two ranges together.
+     *
+     * @param other the second range
+     * @return a new range that is the sum of this and the other
+     */
+    public OccurenceRange add(OccurenceRange other)
+    {
+        int max = this.getMax() + other.getMax();
+        if (this.getMax() == OccurenceRange.UNBOUNDED || other.getMax() == OccurenceRange.UNBOUNDED)
+        {
+            max = OccurenceRange.UNBOUNDED;
+        }
+        return new OccurenceRange(this.getMin() + other.getMin(), max);
+    }
+
+    /**
+     * Multiple two ranges together, if possible.
+     *
+     * @param other the second range
+     * @return a new range that is the product of this and the other, or <code>null</code> if a multiplication is not
+     *         possible
+     */
+    public OccurenceRange multiply(OccurenceRange other)
+    {
+        if (this.isOnce())
+        {
+            return other;
+        }
+        if (other.isOnce())
+        {
+            return this;
+        }
+
+        if (this.getMin() == this.getMax() && other.getMin() == other.getMax())
+        {
+            int simple = this.getMin() * other.getMin();
+            return new OccurenceRange(simple, simple);
+        }
+        if (this.getMax() == OccurenceRange.UNBOUNDED && other.getMax() == OccurenceRange.UNBOUNDED &&
+            (this.getMin() == 1 || other.getMin() == 1))
+        {
+            return new OccurenceRange(this.getMin() * other.getMin(), OccurenceRange.UNBOUNDED);
+        }
+        return null;
     }
 
     /**
@@ -228,12 +280,35 @@ public class OccurenceRange
         return false;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see java.lang.Object#hashCode()
      */
     @Override
     public int hashCode()
     {
         return this.minOccurs | (this.maxOccurs << 16) | (this.maxOccurs >>> 16);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString()
+    {
+        StringBuilder bld = new StringBuilder();
+        bld.append(this.minOccurs);
+        if (this.maxOccurs >= this.minOccurs)
+        {
+            bld.append('-').append(this.maxOccurs);
+        }
+        else
+        {
+            bld.append('+');
+        }
+        return bld.toString();
     }
 }

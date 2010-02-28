@@ -19,7 +19,7 @@ import java.util.Set;
  * A rule fragment that contains a literal expression, in the form:
  *
  * <pre>
- * (&quot;%&quot;[xdb] * HEXDIG[&quot;-&quot; * HEXDIG] * (&quot;.&quot; * HEXDIG[&quot;-&quot; * HEXDIG]))
+ * (&quot;%&quot;[&quot;x&quot; / &quot;d&quot; / &quot;b&quot;] * HEXDIG[&quot;-&quot; * HEXDIG] * (&quot;.&quot; * HEXDIG[&quot;-&quot; * HEXDIG]))
  * </pre>
  */
 public class LiteralFragment extends RuleFragment
@@ -78,7 +78,7 @@ public class LiteralFragment extends RuleFragment
             }
             else
             {
-                c = (char) (c * radix + Character.digit((char) dig, radix));
+                c = c * radix + Character.digit((char) dig, radix);
             }
         }
         frag.addChar(c, range);
@@ -129,26 +129,51 @@ public class LiteralFragment extends RuleFragment
     @Override
     protected StringBuilder buildAbnf(StringBuilder bld)
     {
-        boolean first = true;
+        boolean cont = false;
+        boolean started = false;
         for (CharRange cr : this.ranges)
         {
-            cr.toAbnf(bld, first);
-            first = false;
+            if (cr.getEnd() > cr.getStart())
+            {
+                if (started)
+                {
+                    bld.append(' ');
+                }
+                cr.buildAbnf(bld, false);
+                cont = false;
+            }
+            else
+            {
+                cr.buildAbnf(bld, cont);
+                cont = true;
+            }
+            started = true;
         }
         return bld;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#buildRegex(java.lang.StringBuilder)
-     */
+    @Override
+    protected boolean needsAbnfParens()
+    {
+        if (this.ranges.size() > 1)
+        {
+            for (CharRange cr : this.ranges)
+            {
+                if (cr.getEnd() > cr.getStart())
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     @Override
     protected void buildRegex(PrintWriter pw, Set<String> usedNames) throws RuleResolutionException
     {
         for (CharRange cr : this.ranges)
         {
-            pw.print(cr.toRegex());
+            pw.print(RegexSyntax.getCurrent().range(cr));
         }
     }
 

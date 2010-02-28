@@ -75,7 +75,7 @@ public class RuleFragmentTest
                 return null;
             }
         };
-        Assert.assertTrue(fragment.getOccurences().isOneOnly());
+        Assert.assertTrue(fragment.getOccurences().isOnce());
     }
 
     /**
@@ -95,10 +95,10 @@ public class RuleFragmentTest
     @Test
     public void testNeedsParens()
     {
-        EasyMock.expect(Boolean.valueOf(this.or.isOneOnly())).andReturn(Boolean.TRUE);
-        EasyMock.expect(Boolean.valueOf(this.or.isOneOnly())).andReturn(Boolean.TRUE);
-        EasyMock.expect(Boolean.valueOf(this.or.isOneOnly())).andReturn(Boolean.FALSE);
-        EasyMock.expect(Boolean.valueOf(this.or.isOneOnly())).andReturn(Boolean.FALSE);
+        EasyMock.expect(Boolean.valueOf(this.or.isOnce())).andReturn(Boolean.TRUE);
+        EasyMock.expect(Boolean.valueOf(this.or.isOnce())).andReturn(Boolean.TRUE);
+        EasyMock.expect(Boolean.valueOf(this.or.isOnce())).andReturn(Boolean.FALSE);
+        EasyMock.expect(Boolean.valueOf(this.or.isOnce())).andReturn(Boolean.FALSE);
         EasyClassMock.replay(this.rf, this.or);
 
         Assert.assertFalse(this.rf.needsAbnfParens());
@@ -123,7 +123,7 @@ public class RuleFragmentTest
             Capture<StringBuilder> sameStringBuf = new Capture<StringBuilder>();
             sameStringBufList.add(sameStringBuf);
 
-            EasyMock.expect(Boolean.valueOf(this.or.isOneOnly())).andReturn(Boolean.TRUE);
+            EasyMock.expect(Boolean.valueOf(this.or.isOnce())).andReturn(Boolean.TRUE);
             EasyMock.expect(this.or.addAbnfLeadin(sameStringBuf.capture(), EasyMock.eq(false))).andAnswer(sameStringBuf);
             EasyMock.expect(this.rf.buildAbnf(sameStringBuf.capture())).andAnswer(sameStringBuf);
             EasyMock.expect(this.or.addAbnfTrail(sameStringBuf.capture(), EasyMock.eq(false))).andAnswer(sameStringBuf);
@@ -152,7 +152,7 @@ public class RuleFragmentTest
             Set<String> usedNames = new HashSet<String>();
             String regOccurs = "{n}"; //$NON-NLS-1$
 
-            EasyMock.expect(Boolean.valueOf(this.or.isOneOnly())).andReturn(Boolean.TRUE).times(1, 2);
+            EasyMock.expect(Boolean.valueOf(this.or.isOnce())).andReturn(Boolean.TRUE).times(1, 2);
             EasyMock.expect(this.or.getRegexOccurences()).andReturn(regOccurs);
             this.rf.buildRegex(pw, usedNames);
             pw.print(regOccurs);
@@ -181,7 +181,7 @@ public class RuleFragmentTest
             Set<String> usedNames = new HashSet<String>();
             String regOccurs = "{n}"; //$NON-NLS-1$
 
-            EasyMock.expect(Boolean.valueOf(this.or.isOneOnly())).andReturn(Boolean.FALSE).times(1, 2);
+            EasyMock.expect(Boolean.valueOf(this.or.isOnce())).andReturn(Boolean.FALSE).times(1, 2);
             pw.print("(?:"); //$NON-NLS-1$
             this.rf.buildRegex(pw, usedNames);
             pw.print(")"); //$NON-NLS-1$

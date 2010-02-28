@@ -13,6 +13,7 @@ import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.Iterator;
 
 /**
  * A rule fragment that contains one or more other rule fragments. The extending classes, {@link SequenceFragment} and
@@ -68,69 +69,128 @@ public abstract class GroupFragment extends RuleFragment
      * Removes unnecessary groupings from a set recursively. For instance, groups that have unitary cardinality are
      * removed from their enclosing group if it is of the same type.
      *
-     * @see #canCollapse(RuleFragment)
+     * @see #canCollapse(GroupFragment)
      */
     public void simplify()
     {
-        Deque<RuleFragment> rebuild = new ArrayDeque<RuleFragment>();
-        for (RuleFragment rf : this.fragments)
+        moveOccurencesToGroup();
+
+        Deque<RuleFragment> rebuild = this.fragments;
+        this.fragments = new ArrayDeque<RuleFragment>();
+        for (RuleFragment rf : rebuild)
         {
             if (rf instanceof GroupFragment)
             {
-                collapseGroup(rebuild, (GroupFragment) rf);
+                collapseGroup((GroupFragment) rf);
             }
             else
             {
-                rebuild.addLast(rf);
+                this.append(rf);
             }
         }
-        this.fragments = rebuild;
 
+        moveOccurencesToGroup();
     }
 
     /**
      * The recursive component of {@link #simplify()}.
      *
-     * @param rebuild the copy of the current group that needs rebuilding.
      * @param group the group to collapse.
      */
-    private void collapseGroup(Deque<RuleFragment> rebuild, GroupFragment group)
+    private void collapseGroup(GroupFragment group)
     {
         group.simplify();
         if (canCollapse(group))
         {
-            int min = group.getOccurences().getMin();
-            int max = group.getOccurences().getMax();
-            Deque<RuleFragment> frags = group.fragments;
-            while (canCollapse(frags.peekLast()))
+            for (RuleFragment rf : group.fragments)
             {
-                min *= group.getOccurences().getMin();
-                max *= group.getOccurences().getMax();
-
-                group = ((GroupFragment) frags.peekLast());
-                frags = group.fragments;
+                rf.setOccurences(group.getOccurences().multiply(rf.getOccurences()));
+                if (rf instanceof GroupFragment)
+                {
+                    collapseGroup((GroupFragment) rf);
+                }
+                else
+                {
+                    this.append(rf);
+                }
             }
-            for (RuleFragment f : frags)
-            {
-                OccurenceRange range = new OccurenceRange(min, max);
-                f.setOccurences(range);
-            }
-            rebuild.addAll(frags);
         }
         else
         {
-            rebuild.addLast(group);
+            this.append(group);
         }
     }
 
-    private boolean canCollapse(RuleFragment rf)
+    /**
+     * If the rule can be collapsed into the current group
+     *
+     * @param group the group that is to be collapsed into this
+     * @return if the contents of the group can be safely added to this
+     */
+    private boolean canCollapse(GroupFragment group)
     {
-        if (rf instanceof GroupFragment)
+        for (RuleFragment grf : group.fragments)
         {
-            GroupFragment group = (GroupFragment) rf;
-            return (group.length() == 1) || ((group.getClass() == this.getClass()) && group.getOccurences().isOneOnly());
+            if (group.getOccurences().multiply(grf.getOccurences()) == null)
+            {
+                return false;
+            }
         }
-        return false;
+        return (group.length() == 1) || ((group.getClass() == this.getClass()) && group.getOccurences().isOnce());
+    }
+
+    /**
+     * If all fragments have the same number of occurrences, move that number up to this group, if possible.
+     */
+    private void moveOccurencesToGroup()
+    {
+        if (this.length() == 0)
+        {
+            return;
+        }
+        Iterator<RuleFragment> it = this.fragments.iterator();
+        OccurenceRange range = it.next().getOccurences();
+        OccurenceRange product = this.getOccurences().multiply(range);
+        if (product != null)
+        {
+            if (!it.hasNext())
+            {
+                // For a group of one, move the occurences downwards
+                this.setOccurences(OccurenceRange.ONCE);
+                this.fragments.getFirst().setOccurences(product);
+            }
+            else
+            {
+                // For a group of two or more, move the occurences upwards
+                moveOccurencesUp(it, range, product);
+            }
+        }
+    }
+
+    /**
+     * Move occurence ranges up, if all fragments have the same range (and there are more than one fragment in this
+     * group).
+     *
+     * @param it an iterator for the list of fragments, starting at the second one
+     * @param range the range for the first fragment
+     * @param product the product of the first fragment range and the range on this
+     */
+    private void moveOccurencesUp(Iterator<RuleFragment> it, OccurenceRange range, OccurenceRange product)
+    {
+        // For a group of more than one, move the occurences upwards
+        boolean allSame = true;
+        while (it.hasNext())
+        {
+            allSame &= it.next().getOccurences().equals(range);
+        }
+        if (allSame)
+        {
+            this.setOccurences(product);
+            for (RuleFragment rf : this.fragments)
+            {
+                rf.setOccurences(OccurenceRange.ONCE);
+            }
+        }
     }
 
     @Override
@@ -143,14 +203,28 @@ public abstract class GroupFragment extends RuleFragment
             copy.fragments = new ArrayDeque<RuleFragment>(this.fragments);
             return copy;
         }
-        catch (InstantiationException ex)
+        catch (Exception ex)
         {
-            ex.printStackTrace();
+            throw new RuntimeException(ex); // ugly? oh yeah.
         }
-        catch (IllegalAccessException ex)
+    }
+
+    /**
+     * Append all fragments from the other group
+     *
+     * @param group a group that is to be broken open and added to this group.
+     * @return true if the group was split and added
+     */
+    protected boolean appendAll(GroupFragment group)
+    {
+        if (this.getOccurences().equals(group.getOccurences()))
         {
-            ex.printStackTrace();
+            for (RuleFragment rf : group.fragments)
+            {
+                this.append(rf); // this never returns false for a group
+            }
+            return true;
         }
-        return null; // this will crash the program--as it should
+        return false;
     }
 }

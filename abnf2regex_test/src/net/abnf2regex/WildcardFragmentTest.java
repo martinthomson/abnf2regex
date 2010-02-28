@@ -36,7 +36,7 @@ public class WildcardFragmentTest
     {
         WildcardFragment wc = new WildcardFragment("text"); //$NON-NLS-1$
         wc.setOccurences(new OccurenceRange(1, -1)); // should do nothing
-        Assert.assertEquals(new OccurenceRange(1, 1), wc.getOccurences());
+        Assert.assertEquals(OccurenceRange.ONCE, wc.getOccurences());
     }
 
     /**
@@ -118,7 +118,7 @@ public class WildcardFragmentTest
         {
             String message = "parsed"; //$NON-NLS-1$
             Reader mockReader = EasyClassMock.createMock(Reader.class);
-            AbnfReader abnf = new AbnfReader(mockReader);
+            AbnfReader abnf = new AbnfReader(mockReader, "mock"); //$NON-NLS-1$
             EasyMock.expect(Integer.valueOf(abnf.read())).andReturn(Integer.valueOf('<'));
             for (int i = 0; i < message.length(); ++i)
             {

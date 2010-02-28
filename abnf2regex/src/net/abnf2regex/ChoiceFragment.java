@@ -11,8 +11,12 @@ package net.abnf2regex;
 
 import java.io.PrintWriter;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -28,31 +32,21 @@ public class ChoiceFragment extends GroupFragment
     @Override
     public boolean append(RuleFragment frag)
     {
+        boolean added = false;
         if (frag instanceof ChoiceFragment)
         {
-            ChoiceFragment other = (ChoiceFragment) frag;
-            if (other.getOccurences().isOneOnly())
-            {
-                this.fragments.addAll(other.fragments);
-            }
-            else
-            {
-                this.fragments.add(frag);
-            }
+            GroupFragment choice = (GroupFragment) frag;
+            added = this.appendAll(choice);
         }
         else if (frag instanceof SequenceFragment)
         {
             SequenceFragment seq = (SequenceFragment) frag;
             if (seq.length() == 1)
             {
-                this.fragments.add(seq.removeLast());
-            }
-            else
-            {
-                this.fragments.add(frag);
+                added = this.appendAll(seq);
             }
         }
-        else
+        if (!added)
         {
             this.fragments.add(frag);
         }
@@ -91,7 +85,7 @@ public class ChoiceFragment extends GroupFragment
     @Override
     protected boolean needsAbnfParens()
     {
-        return this.length() != 1;
+        return true;
     }
 
     /*
@@ -104,7 +98,7 @@ public class ChoiceFragment extends GroupFragment
     {
         Deque<RuleFragment> copy = new ArrayDeque<RuleFragment>(this.fragments);
         boolean started = false;
-        String singles = getSingles(copy);
+        String singles = getSingleCharacterList(copy);
         if (singles.length() > 0)
         {
             started = true;
@@ -115,94 +109,138 @@ public class ChoiceFragment extends GroupFragment
         {
             if (started)
             {
-                pw.print('|');
+                pw.print(RegexSyntax.getCurrent().getChoiceSeparator());
             }
             started = true;
             rf.writeRegex(pw, usedNames);
         }
     }
 
+
     /**
+     * Get a string for the single character fragments in the choice, so we can turn it into a [list]
+     *
      * @param copy a copy of the fragments in this choice, which can (and will) have any used elements removed.
      */
-    private String getSingles(Deque<RuleFragment> copy)
+    private String getSingleCharacterList(Collection<RuleFragment> copy)
     {
-        StringBuilder singles = new StringBuilder();
-        int count = 0;
+        List<CharRange> singles = new ArrayList<CharRange>();
+        // the number of single characters added (we need brackets if this is > 1)
+        boolean range = extractSingles(copy, singles);
+        if (singles.size() > 0)
+        {
+            mergeRanges(singles);
+
+            RegexSyntax syntax = RegexSyntax.getCurrent();
+            StringBuilder bld = new StringBuilder();
+            range |= (singles.size() > 1);
+            if (range)
+            {
+                bld.insert(0, syntax.getListStart());
+            }
+            for (CharRange cr : singles)
+            {
+                bld.append(syntax.range(cr, false));
+            }
+            if (range)
+            {
+                bld.append(syntax.getListEnd());
+            }
+
+            return bld.toString();
+        }
+        return ""; //$NON-NLS-1$
+    }
+
+    /**
+     * Extract all fragments from the list that contain single character rules.
+     *
+     * @param copy a copy, from which single character rules are extracted.
+     * @param singles the target collection of single characters.
+     * @return
+     */
+    private boolean extractSingles(Collection<RuleFragment> copy, Collection<CharRange> singles)
+    {
         Iterator<RuleFragment> it = copy.iterator();
+        boolean range = false;
         while (it.hasNext())
         {
             RuleFragment rf = it.next();
-            if (rf instanceof LiteralFragment)
+            if (rf.getOccurences().isOnce())
             {
-                LiteralFragment lf = (LiteralFragment) rf;
-                CharRange scr = lf.singleCharRange();
-                if (scr != null)
+                if (rf instanceof LiteralFragment)
                 {
-                    it.remove();
-                    count += addLiteralSingle(singles, scr);
+                    LiteralFragment lf = (LiteralFragment) rf;
+                    CharRange scr = lf.singleCharRange();
+                    if (scr != null)
+                    {
+                        it.remove();
+                        singles.add(scr);
+                        range |= (scr.getStart() < scr.getEnd());
+                    }
                 }
-            }
-            else if (rf instanceof StringFragment)
-            {
-                StringFragment sf = (StringFragment) rf;
+                else if (rf instanceof StringFragment)
+                {
+                    StringFragment sf = (StringFragment) rf;
 
-                int sc = sf.singleChar();
-                if (sc >= 0)
-                {
-                    count += addStringSingle(singles, sc);
-                    it.remove();
+                    int sc = sf.singleChar();
+                    if (sc >= 0)
+                    {
+                        convertStringToLiterals(singles, sc);
+                        it.remove();
+                    }
                 }
             }
         }
-        if (count > 1)
-        {
-            singles.insert(0, '[');
-            singles.append(']');
-        }
-        return singles.toString();
+        return range;
     }
 
     /**
-     * Add a single character from a string literal.
+     * Add a single character string.
      *
      * @param singles the string builder to add to
      * @param sc the single character to add
-     * @return the number of characters added to the sequence.
      */
-    private int addStringSingle(StringBuilder singles, int sc)
+    private void convertStringToLiterals(Collection<CharRange> singles, int sc)
     {
         if (Character.isLetter(sc))
         {
-            singles.append((char) Character.toLowerCase(sc));
-            singles.append((char) Character.toUpperCase(sc));
-            return 2;
+            int upperCase = Character.toUpperCase(sc);
+            singles.add(new CharRange(upperCase, upperCase));
+            int lowerCase = Character.toLowerCase(sc);
+            singles.add(new CharRange(lowerCase, lowerCase));
         }
-        singles.append(CharRange.regexChar((char) sc));
-        return 1;
+        else
+        {
+            singles.add(new CharRange(sc, sc));
+        }
     }
 
     /**
-     * @param singles
-     * @param scr
-     * @return
+     * Merge character ranges.
+     *
+     * @param singles the list of character ranges
+     * @return a list containing sorted, merged fragments.
      */
-    private int addLiteralSingle(StringBuilder singles, CharRange scr)
+    private List<CharRange> mergeRanges(List<CharRange> singles)
     {
-        if (scr.getStart() == '0' && scr.getEnd() == '9')
+        Collections.sort(singles);
+        List<CharRange> copy = new ArrayList<CharRange>();
+        CharRange saved = singles.get(0);
+        for (CharRange cr : singles)
         {
-            singles.append("\\d"); //$NON-NLS-1$
-            return 1;
+            CharRange merge = saved.merge(cr);
+            if (merge != null)
+            {
+                saved = merge;
+            }
+            else
+            {
+                copy.add(saved);
+                saved = cr;
+            }
         }
-
-        singles.append(CharRange.regexChar(scr.getStart()));
-        if (scr.getEnd() > scr.getStart())
-        {
-            singles.append('-');
-            singles.append(CharRange.regexChar(scr.getEnd()));
-            return 2;
-        }
-        return 1;
+        return copy;
     }
 
     /*
@@ -213,17 +251,18 @@ public class ChoiceFragment extends GroupFragment
     @Override
     protected boolean needsRegexParens()
     {
-        if (this.length() == 1)
-        {
-            return false;
-        }
+        // Note: choices never have a length of 1 after simplification, so checking for that doesn't make sense.
+
         for (RuleFragment rf : this.fragments)
         {
+            if (!rf.getOccurences().isOnce())
+            {
+                return true;
+            }
             if (rf instanceof LiteralFragment)
             {
                 LiteralFragment lf = (LiteralFragment) rf;
-                CharRange scr = lf.singleCharRange();
-                if (scr == null)
+                if (lf.singleCharRange() == null)
                 {
                     return true;
                 }
@@ -232,8 +271,7 @@ public class ChoiceFragment extends GroupFragment
             {
                 StringFragment sf = (StringFragment) rf;
 
-                int sc = sf.singleChar();
-                if (sc < 0)
+                if (sf.singleChar() < 0)
                 {
                     return true;
                 }

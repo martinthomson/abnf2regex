@@ -19,7 +19,7 @@ import java.util.Set;
 public class WildcardFragment extends RuleFragment
 {
 
-    private final String txt;
+    private final String text;
 
     /**
      * Create a simple wildcard fragment
@@ -36,7 +36,7 @@ public class WildcardFragment extends RuleFragment
      */
     public WildcardFragment(String _txt)
     {
-        this.txt = _txt;
+        this.text = _txt;
         this.setOccurences(null); // see {@link #setOccurs}
     }
 
@@ -45,7 +45,7 @@ public class WildcardFragment extends RuleFragment
     {
         // A wildcard has no need of repetitions. This absorbs any attempt to set these. For instance, if an enclosing
         // sequence with non-unitary repetitions is simplified, this will negate the repetitions.
-        super.setOccurences(new OccurenceRange(1, 1));
+        super.setOccurences(OccurenceRange.ONCE);
     }
 
     /*
@@ -79,13 +79,14 @@ public class WildcardFragment extends RuleFragment
     @Override
     protected StringBuilder buildAbnf(StringBuilder bld)
     {
-        return bld.append('<').append(this.txt).append('>');
+        return bld.append('<').append(this.text).append('>');
     }
 
     @Override
     protected void buildRegex(PrintWriter pw, Set<String> usedNames)
     {
-        pw.print(".*"); //$NON-NLS-1$
+        RegexSyntax syntax = RegexSyntax.getCurrent();
+        pw.print(syntax.getWildcard() +  syntax.getOccurenceAny());
     }
 
     /**
@@ -109,6 +110,6 @@ public class WildcardFragment extends RuleFragment
     @Override
     public Object clone()
     {
-        return new WildcardFragment(this.txt);
+        return new WildcardFragment(this.text);
     }
 }

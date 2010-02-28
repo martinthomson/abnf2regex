@@ -12,7 +12,7 @@ package net.abnf2regex;
 /**
  * A range of characters, typically as a result of a literal expression like %61-66.
  */
-public class CharRange
+public class CharRange implements Comparable<CharRange>
 {
     /** The start of the range. */
     private final int start;
@@ -75,109 +75,99 @@ public class CharRange
      * Build ABNF for the given character range.
      *
      * @param bld a {@link StringBuilder} to append to
-     * @param first whether this is the first such, or whether others precede it
+     * @param cont whether this is a continuation of a prior fragment
      * @return bld, to allow for chaining
      */
-    public StringBuilder toAbnf(StringBuilder bld, boolean first)
+    /* package private */StringBuilder buildAbnf(StringBuilder bld, boolean cont)
     {
-        if (first)
-        {
-            bld.append("%x"); //$NON-NLS-1$
-        }
-        else
+        if (cont)
         {
             bld.append('.');
         }
+        else
+        {
+            bld.append("%x"); //$NON-NLS-1$
+        }
 
-        bld.append(CharRange.hexChar(this.start));
+        bld.append(RegexSyntax.hexChar(this.start));
         if (this.end > this.start)
         {
             bld.append('-');
-            bld.append(CharRange.hexChar(this.end));
+            bld.append(RegexSyntax.hexChar(this.end));
         }
         return bld;
-    }
-
-    /**
-     * Create a regular expression for the range.
-     *
-     * @return a regular expression string.
-     */
-    public String toRegex()
-    {
-        StringBuilder bld = new StringBuilder();
-        if ((this.start == '0') && (this.end == '9'))
-        {
-            bld.append("\\d"); //$NON-NLS-1$
-        }
-        else if (this.start < this.end)
-        {
-            bld.append('[');
-            bld.append(CharRange.regexChar(this.start));
-            bld.append('-');
-            bld.append(CharRange.regexChar(this.end));
-            bld.append(']');
-        }
-        else
-        {
-            bld.append(CharRange.regexChar(this.start));
-        }
-        return bld.toString();
-    }
-
-    /**
-     * Escape a character for use in regular expressions.
-     *
-     * @param ch any character
-     * @return a regular expression string for that character, properly escaped.
-     */
-    public static String regexChar(int ch)
-    {
-        switch (ch)
-        {
-            // bad = .\?*+()|[]
-            // dodgy = -
-            case '.':
-            case '\\':
-            case '?':
-            case '*':
-            case '+':
-            case '(':
-            case ')':
-            case '|':
-            case '[':
-            case ']':
-            case '-':
-                return "\\" + (char) ch; //$NON-NLS-1$
-            case '\t':
-                return "\\t"; //$NON-NLS-1$
-            case '\r':
-                return "\\r"; //$NON-NLS-1$
-            case '\n':
-                return "\\n"; //$NON-NLS-1$
-            default:
-                if ((ch > 0x1f) && (ch < 0x7f)) // (use \\u for all unicode)
-                {
-                    return Character.toString((char) ch);
-                }
-                String hex = CharRange.hexChar(ch);
-                if (hex.length() == 2)
-                {
-                    return "\\x" + hex; //$NON-NLS-1$
-                }
-                return "\\u" + hex; //$NON-NLS-1$
-        }
-    }
-
-    private static String hexChar(int ch)
-    {
-        String hexChars = Integer.toHexString(ch);
-        return (((hexChars.length() % 2) == 1) ? "0" : "") + hexChars; //$NON-NLS-1$//$NON-NLS-2$
     }
 
     @Override
     public String toString()
     {
-        return this.toAbnf(new StringBuilder(), true).toString();
+        return this.buildAbnf(new StringBuilder(), false).toString();
+    }
+
+    /**
+     * Compare based on the start of the range, followed by the end of the range. This results in a-a &lt; a-b &lt; b-b
+     * &lt; b-c.
+     *
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(CharRange o)
+    {
+        if (this.getStart() == o.getStart())
+        {
+            return this.getEnd() - o.getEnd();
+        }
+        return this.getStart() - o.getStart();
+    }
+
+    /**
+     * Merge two character ranges if they overlap or touch.
+     *
+     * @param other the range to merge in
+     * @return A merged range, or null if there is no overlap
+     */
+    public CharRange merge(CharRange other)
+    {
+        if ((this.start <= other.start && this.end + 1 >= other.start) ||
+            (other.start <= this.start && other.end + 1 >= this.start))
+        {
+            return new CharRange(Math.min(this.start, other.start), Math.max(this.end, other.end));
+        }
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode()
+    {
+        return this.start * 31 + this.end;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (obj instanceof CharRange)
+        {
+            CharRange other = (CharRange) obj;
+            return (this.start == other.start && this.end == other.end);
+        }
+        return false;
     }
 }

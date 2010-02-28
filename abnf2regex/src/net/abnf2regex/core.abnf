@@ -22,7 +22,7 @@ DQUOTE         =  %x22
                        ; " (Double Quote)
 
 HEXDIG         =  DIGIT / %x41-46 / %x61-66
-                       ; Modified from RFC 5234, which is
+                       ; Modified from RFC 5234, which defines:
                        ; DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
 
 HTAB           =  %x09

@@ -27,6 +27,8 @@ import org.junit.Test;
  */
 public class AbnfReaderTest
 {
+    /** The name of the file in the mock reader */
+    private static final String FILE_NAME = "mock"; //$NON-NLS-1$
     private Reader mockReader;
     private AbnfReader abnf;
 
@@ -37,11 +39,11 @@ public class AbnfReaderTest
     public void setUp()
     {
         this.mockReader = EasyClassMock.createMock(Reader.class);
-        this.abnf = new AbnfReader(this.mockReader);
+        this.abnf = new AbnfReader(this.mockReader, FILE_NAME);
     }
 
     /**
-     * Test method for {@link net.abnf2regex.AbnfReader#AbnfReader(java.io.Reader)}.
+     * Test method for {@link net.abnf2regex.AbnfReader#AbnfReader(java.io.Reader, String)}.
      */
     @Test
     public void testInstantiation()
@@ -50,6 +52,7 @@ public class AbnfReaderTest
         try
         {
             Assert.assertSame(this.mockReader, getIn.get(this.abnf, "in")); //$NON-NLS-1$
+            Assert.assertSame(FILE_NAME, this.abnf.getFilename());
         }
         catch (TestAccessException ex)
         {
@@ -159,6 +162,7 @@ public class AbnfReaderTest
             reallyTestGobbleWhitespace(" \n"); //$NON-NLS-1$
             reallyTestGobbleWhitespace("\t x"); //$NON-NLS-1$
             reallyTestGobbleWhitespace("\t\r"); //$NON-NLS-1$
+            Assert.assertEquals(3, this.abnf.getLine());
         }
         catch (IOException ex)
         {
@@ -195,9 +199,10 @@ public class AbnfReaderTest
             this.reallyTestFindNextLine("abc\r\\"); //$NON-NLS-1$
             this.reallyTestFindNextLine("abc\r\n\t"); //$NON-NLS-1$
 
-            reallyTestFindNextLineEof('b');
-            reallyTestFindNextLineEof('\n');
-            reallyTestFindNextLineEof('\r');
+            this.reallyTestFindNextLineEof('b');
+            this.reallyTestFindNextLineEof('\n');
+            this.reallyTestFindNextLineEof('\r');
+            Assert.assertEquals(6, this.abnf.getLine());
         }
         catch (IOException ex)
         {
@@ -220,6 +225,7 @@ public class AbnfReaderTest
         }
         EasyClassMock.replay(this.mockReader);
         this.abnf.findNextLine();
+        Assert.assertEquals(1, this.abnf.getColumn());
         Assert.assertEquals(input.charAt(input.length() - 1), this.abnf.read());
         EasyClassMock.verify(this.mockReader);
         EasyClassMock.reset(this.mockReader);
@@ -293,10 +299,14 @@ public class AbnfReaderTest
         try
         {
             this.reallyTestParseNumber(12, 10,' ');
+            Assert.assertEquals(4, this.abnf.getColumn());
             this.reallyTestParseNumber(3, 4, '=');
+            Assert.assertEquals(6, this.abnf.getColumn());
             this.reallyTestParseNumber(99, 16, '\t');
+            Assert.assertEquals(9, this.abnf.getColumn());
             // and check for eof too
             this.reallyTestParseNumber(8, 12, -1);
+            Assert.assertEquals(11, this.abnf.getColumn());
 
             // no number means zero
             EasyMock.expect(Integer.valueOf(this.mockReader.read())).andReturn(Integer.valueOf(-1));

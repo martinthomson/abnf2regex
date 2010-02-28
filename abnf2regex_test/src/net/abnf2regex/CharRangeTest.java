@@ -37,55 +37,72 @@ public class CharRangeTest
     }
 
     /**
-     * Test method for {@link net.abnf2regex.CharRange#toAbnf(java.lang.StringBuilder, boolean)}.
+     * Test method for {@link net.abnf2regex.CharRange#buildAbnf(java.lang.StringBuilder, boolean)}.
      */
     @Test
     public void testToAbnf()
     {
         StringBuilder bld = new StringBuilder();
-        Assert.assertSame(bld, new CharRange(0x40).toAbnf(bld, true));
+        Assert.assertSame(bld, new CharRange(0x40).buildAbnf(bld, false));
         Assert.assertEquals("%x40", bld.toString()); //$NON-NLS-1$
         bld.setLength(0);
-        new CharRange(0x40).toAbnf(bld, false);
+        new CharRange(0x40).buildAbnf(bld, true);
         Assert.assertEquals(".40", bld.toString()); //$NON-NLS-1$
         bld.setLength(0);
-        new CharRange(0x40, 0x38).toAbnf(bld, true);
+        new CharRange(0x40, 0x38).buildAbnf(bld, false);
         Assert.assertEquals("%x40", bld.toString()); //$NON-NLS-1$
         bld.setLength(0);
-        new CharRange(0x40, 0x44).toAbnf(bld, true);
+        new CharRange(0x40, 0x44).buildAbnf(bld, false);
         Assert.assertEquals("%x40-44", bld.toString()); //$NON-NLS-1$
         Assert.assertEquals("%x50-64", new CharRange(0x50, 0x64).toString()); //$NON-NLS-1$
     }
 
     /**
-     * Test method for {@link net.abnf2regex.CharRange#toRegex()}.
+     * Test that comparison works.
      */
     @Test
-    public void testToRegex()
+    public void testComparison()
     {
-        Assert.assertEquals("\\d", new CharRange('0', '9').toRegex()); //$NON-NLS-1$
-        Assert.assertEquals("[c-q]", new CharRange('c', 'q').toRegex()); //$NON-NLS-1$
-        Assert.assertEquals("\\t", new CharRange('\t').toRegex()); //$NON-NLS-1$
+        Assert.assertTrue(new CharRange(0x40, 0x42).compareTo(new CharRange(0x42, 0x44)) < 0);
+        Assert.assertTrue(new CharRange(0x40, 0x42).compareTo(new CharRange(0x40, 0x44)) < 0);
+        Assert.assertTrue(new CharRange(0x42, 0x42).compareTo(new CharRange(0x42, 0x44)) < 0);
+        Assert.assertTrue(new CharRange(0x40, 0x42).compareTo(new CharRange(0x40, 0x42)) == 0);
+        Assert.assertTrue(new CharRange(0x42, 0x46).compareTo(new CharRange(0x42, 0x44)) > 0);
+        Assert.assertTrue(new CharRange(0x46, 0x48).compareTo(new CharRange(0x40, 0x44)) > 0);
     }
 
     /**
-     * Test method for {@link net.abnf2regex.CharRange#regexChar(int)}.
+     * Test that merging works.
      */
     @Test
-    public void testRegexChar()
+    public void testMerging()
     {
-        char[] dodgy = new char[] { '.', '\\', '?', '*', '+', '(', ')', '|', '[', ']', '-' };
-        for (char d : dodgy)
-        {
-            Assert.assertEquals("\\" + d, CharRange.regexChar(d)); //$NON-NLS-1$
-        }
-        Assert.assertEquals("\\t", CharRange.regexChar('\t')); //$NON-NLS-1$
-        Assert.assertEquals("\\n", CharRange.regexChar('\n')); //$NON-NLS-1$
-        Assert.assertEquals("\\r", CharRange.regexChar('\r')); //$NON-NLS-1$
-        Assert.assertEquals("a", CharRange.regexChar('a')); //$NON-NLS-1$
-        Assert.assertEquals("\\x04", CharRange.regexChar(4)); //$NON-NLS-1$
-        Assert.assertEquals("\\xe7", CharRange.regexChar(0xe7)); //$NON-NLS-1$
-        Assert.assertEquals("\\u0909", CharRange.regexChar(0x909)); //$NON-NLS-1$
-        Assert.assertEquals("\\u1aaa", CharRange.regexChar(0x1aaa)); //$NON-NLS-1$
+        checkEquals(new CharRange(0x40, 0x44), new CharRange(0x40, 0x42).merge(new CharRange(0x42, 0x44)));
+        checkEquals(new CharRange(0x40, 0x44), new CharRange(0x40, 0x41).merge(new CharRange(0x42, 0x44)));
+        checkEquals(new CharRange(0x40, 0x44), new CharRange(0x42, 0x44).merge(new CharRange(0x40, 0x42)));
+        checkEquals(new CharRange(0x40, 0x44), new CharRange(0x42, 0x44).merge(new CharRange(0x40, 0x41)));
+        checkEquals(new CharRange(0x40, 0x44), new CharRange(0x40, 0x44).merge(new CharRange(0x40, 0x41)));
+        checkEquals(new CharRange(0x40, 0x44), new CharRange(0x42, 0x44).merge(new CharRange(0x40, 0x44)));
+    }
+
+    /**
+     * Check .equals();
+     */
+    @Test
+    public void testEquals()
+    {
+        CharRange cr = new CharRange(0x40, 0x40);
+        checkEquals(cr, cr);
+        Assert.assertFalse(cr.equals(null));
+        Assert.assertFalse(cr.equals(new CharRange(0x40, 0x44)));
+        Assert.assertFalse(cr.equals(new CharRange(0x44, 0x40)));
+        Assert.assertFalse(cr.equals("foo")); //$NON-NLS-1$
+    }
+
+    /** Not only does this check for equality, it checks that the contract for equals and hashCode is met. */
+    private void checkEquals(Object a, Object b)
+    {
+        Assert.assertEquals(a, b);
+        Assert.assertEquals(a.hashCode(), b.hashCode());
     }
 }

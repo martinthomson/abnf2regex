@@ -64,6 +64,17 @@ public class StringFragment extends RuleFragment
     /*
      * (non-Javadoc)
      *
+     * @see net.abnf2regex.RuleFragment#needsAbnfParens()
+     */
+    @Override
+    protected boolean needsAbnfParens()
+    {
+        return false;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see net.abnf2regex.RuleFragment#buildRegex(java.lang.StringBuilder)
      */
     @Override
@@ -74,13 +85,13 @@ public class StringFragment extends RuleFragment
             if (Character.isLetter(ch))
             {
                 pw.print('[');
-                pw.print(Character.toLowerCase(ch));
                 pw.print(Character.toUpperCase(ch));
+                pw.print(Character.toLowerCase(ch));
                 pw.print(']');
             }
             else
             {
-                pw.print(CharRange.regexChar(ch));
+                pw.print(RegexSyntax.getCurrent().character(ch));
             }
         }
     }

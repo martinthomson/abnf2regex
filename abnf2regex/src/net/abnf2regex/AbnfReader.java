@@ -24,14 +24,55 @@ public class AbnfReader extends FilterReader
     /** The next value, set to {@link #NO_PEEK} if there isn't one. */
     private int peeked = NO_PEEK;
 
+    /** The current line number. */
+    private int line = 1;
+    /** The stream name. */
+    private final String filename;
+    /** used by the next line counter */
+    private int lastEof = -1;
+    /** used by the character counter */
+    private int column = 1;
+
+    /**
+     * Gets the line number of the next character to be read.
+     *
+     * @return the line
+     */
+    public int getLine()
+    {
+        return this.line;
+    }
+
+    /**
+     * Gets the column of the next character to be read.
+     *
+     * @return the column
+     */
+    public int getColumn()
+    {
+        return this.column;
+    }
+
+    /**
+     * Get the name of the stream.
+     *
+     * @return the filename
+     */
+    public String getFilename()
+    {
+        return this.filename;
+    }
+
     /**
      * Create a new reader.
      *
      * @param r The stream to filter.
+     * @param _filename the name of the file/stream that is being read.
      */
-    public AbnfReader(Reader r)
+    public AbnfReader(Reader r, String _filename)
     {
         super(r);
+        this.filename = _filename;
     }
 
     /**
@@ -49,8 +90,7 @@ public class AbnfReader extends FilterReader
         return this.peeked;
     }
 
-    @Override
-    public int read() throws IOException
+    private int reallyRead() throws IOException
     {
         if (this.peeked != NO_PEEK)
         {
@@ -59,6 +99,23 @@ public class AbnfReader extends FilterReader
             return r;
         }
         return super.read();
+    }
+
+    @Override
+    public int read() throws IOException
+    {
+        int c = reallyRead();
+        if ((c == '\n' && this.lastEof != '\r') || c == '\r') // count EOL
+        {
+            this.line++;
+            this.column = 1;
+        }
+        else if (c != '\n')
+        {
+            this.column ++;
+        }
+        this.lastEof = c;
+        return c;
     }
 
     /**
@@ -73,7 +130,7 @@ public class AbnfReader extends FilterReader
     }
 
     /**
-     * Consumes input as long as that input is whitespace.
+     * Consumes input as long as that input is whitespace and not and end-of-line character.
      *
      * @return the amount of whitespace consumed.
      * @throws IOException if a read fails
@@ -94,7 +151,7 @@ public class AbnfReader extends FilterReader
     }
 
     /**
-     * Consumes input up to the next line.
+     * Consumes input up to the next line or the end of the file. Supports "\n", "\r", and "\r\n" end-of-line.
      *
      * @throws IOException if a read fails
      */
@@ -158,5 +215,4 @@ public class AbnfReader extends FilterReader
     {
         return this.parseNumber(10);
     }
-
 }

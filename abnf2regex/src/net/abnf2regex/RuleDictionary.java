@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
@@ -39,14 +40,23 @@ public class RuleDictionary
 
     static
     {
-        try
+        String useCore = System.getProperty(RuleDictionary.class.getName() + ".core"); //$NON-NLS-1$
+        if (useCore == null || !useCore.equalsIgnoreCase("false")) //$NON-NLS-1$
         {
-            InputStream coreRules = RuleDictionary.class.getResourceAsStream(RuleDictionary.CORE_RULES_FILE);
-            RuleDictionary.predefinedRules.parse(coreRules);
-        }
-        catch (IOException ex)
-        {
-            ex.printStackTrace();
+            try
+            {
+                InputStream coreRules = RuleDictionary.class.getResourceAsStream(RuleDictionary.CORE_RULES_FILE);
+                RuleDictionary.predefinedRules.parse(coreRules, RuleDictionary.CORE_RULES_FILE);
+                RuleDictionary.predefinedRules.resolve();
+            }
+            catch (IOException ex)
+            {
+                ex.printStackTrace();
+            }
+            catch (AbnfParseException aex)
+            {
+                aex.printStackTrace();
+            }
         }
     }
 
@@ -107,9 +117,9 @@ public class RuleDictionary
     {
         Rule copy = new Rule(br.getName());
 
-        SequenceFragment mainFrag = br.getMainFragment();
+        GroupFragment mainFrag = br.getMainFragment();
         this.resolveRule(mainFrag);
-        SequenceFragment copyFrag = copy.getMainFragment();
+        GroupFragment copyFrag = copy.getMainFragment();
 
         Set<String> usedNames = new HashSet<String>();
         expandCopyFragments(mainFrag, copyFrag, usedNames);
@@ -128,6 +138,8 @@ public class RuleDictionary
      */
     private void expandCopyFragments(GroupFragment from, GroupFragment to, Set<String> usedNames)
     {
+        to.setOccurences(from.getOccurences());
+
         for (RuleFragment rf : from.getFragments())
         {
             if (rf instanceof NamedFragment)
@@ -136,22 +148,17 @@ public class RuleDictionary
             }
             else if (rf instanceof GroupFragment)
             {
-                GroupFragment gf;
-                if (rf instanceof SequenceFragment)
+                try
                 {
-                    gf = new SequenceFragment();
+                    GroupFragment group = (GroupFragment) rf;
+                    GroupFragment copy = group.getClass().newInstance();
+                    this.expandCopyFragments(group, copy, usedNames);
+                    to.append(copy);
                 }
-                else if (rf instanceof ChoiceFragment)
+                catch (Exception ex)
                 {
-                    gf = new ChoiceFragment();
+                    throw new IllegalStateException("Unknown GroupFragment class: " + rf.getClass(), ex); //$NON-NLS-1$
                 }
-                else
-                {
-                    throw new IllegalStateException("Unknown GroupFragment type:" + rf); //$NON-NLS-1$
-                }
-                gf.setOccurences(rf.getOccurences());
-                this.expandCopyFragments((GroupFragment) rf, gf, usedNames);
-                to.append(gf);
             }
             else
             {
@@ -174,7 +181,7 @@ public class RuleDictionary
 
         if (usedNames.contains(named.getName()) || rule == null)
         {
-            String reason = named.getName() + ((rule == null) ? " does not exist" : " recurses.");  //$NON-NLS-1$//$NON-NLS-2$
+            String reason = named.getName() + ((rule == null) ? " does not exist" : " recurses"); //$NON-NLS-1$//$NON-NLS-2$
             if (!RuleDictionary.warned.contains(named.getName()))
             {
                 System.err.println("Warning: rule " + reason); //$NON-NLS-1$
@@ -186,14 +193,27 @@ public class RuleDictionary
             return;
         }
 
-        usedNames.add(named.getName());
+        GroupFragment main = rule.getMainFragment();
+        try
+        {
+            usedNames.add(named.getName());
 
-        SequenceFragment sf = new SequenceFragment();
-        sf.setOccurences(named.getOccurences());
-        this.expandCopyFragments(rule.getMainFragment(), sf, usedNames);
-        to.append(sf);
+            GroupFragment inner = main.getClass().newInstance();
+            this.expandCopyFragments(main, inner, usedNames);
 
-        usedNames.remove(named.getName());
+            SequenceFragment sf = new SequenceFragment();
+            sf.setOccurences(named.getOccurences());
+            sf.append(inner);
+            to.append(sf);
+        }
+        catch (Exception ex)
+        {
+            throw new IllegalStateException("Unknown GroupFragment class: " + main.getClass(), ex); //$NON-NLS-1$
+        }
+        finally
+        {
+            usedNames.remove(named.getName());
+        }
     }
 
     /**
@@ -258,25 +278,49 @@ public class RuleDictionary
     }
 
     /**
+     * Generate a compact regex for a given rule.
+     *
+     * @param name the name of the rule
+     * @return a regular expression
+     * @throws RuleResolutionException If the rule can't be found or the rule contains references to rules that can't be
+     *             found.
+     */
+    public String ruleToRegex(String name) throws RuleResolutionException
+    {
+        Rule rule = this.getRule(name);
+        if (rule == null)
+        {
+            throw new RuleResolutionException("Can't find rule '" + name + "'"); //$NON-NLS-1$ //$NON-NLS-2$
+        }
+        Rule expanded = this.expandRule(rule);
+
+        StringWriter sw = new StringWriter();
+        expanded.writeRegex(new PrintWriter(sw), new HashSet<String>());
+        return sw.toString();
+    }
+
+    /**
      * Convenience method for {@link #parse(AbnfReader)}.
      *
      * @param abnf an {@link InputStream} to read from
+     * @param filename the name of the file/stream that is being read
      * @throws IOException when there are errors reading from the stream.
      */
-    public void parse(InputStream abnf) throws IOException
+    public void parse(InputStream abnf, String filename) throws IOException, AbnfParseException
     {
-        this.parse(new InputStreamReader(abnf));
+        this.parse(new InputStreamReader(abnf), filename);
     }
 
     /**
      * Convenience method for {@link #parse(AbnfReader)}.
      *
      * @param abnf an {@link Reader} to read from
+     * @param filename the name of the file/stream that is being read
      * @throws IOException when there are errors reading from the stream.
      */
-    public void parse(Reader abnf) throws IOException
+    public void parse(Reader abnf, String filename) throws IOException, AbnfParseException
     {
-        this.parse(new AbnfReader(abnf));
+        this.parse(new AbnfReader(abnf, filename));
     }
 
     /**
@@ -286,7 +330,7 @@ public class RuleDictionary
      * @param abnf a specialized reader instance, used by this package only.
      * @throws IOException when there are errors reading from the stream.
      */
-    public void parse(AbnfReader abnf) throws IOException
+    public void parse(AbnfReader abnf) throws IOException, AbnfParseException
     {
         Rule currentRule = null;
         Deque<SequenceFragment> seqStack = new ArrayDeque<SequenceFragment>();
@@ -298,6 +342,11 @@ public class RuleDictionary
             {
                 abnf.findNextLine();
                 continue;
+            }
+
+            if (currentRule == null && ws > 0)
+            {
+                throw new AbnfParseException("Whitespace before first rule.", abnf); //$NON-NLS-1$
             }
 
             // if this is a new line and there is no leading whitespace: new rule
@@ -317,7 +366,6 @@ public class RuleDictionary
 
             parseFragments(abnf, seqStack);
 
-            abnf.findNextLine();
         }
         this.continueRule(0, currentRule);
     }
@@ -332,32 +380,33 @@ public class RuleDictionary
      * @return the rule that is either being continued or started
      * @throws IOException when there are IO troubles
      */
-    private Rule startNewRule(AbnfReader abnf, Deque<SequenceFragment> seqStack, String name) throws IOException
+    private Rule startNewRule(AbnfReader abnf, Deque<SequenceFragment> seqStack, String name) throws IOException,
+                    AbnfParseException
     {
         abnf.gobbleWhitespace();
         if (abnf.read() != '=')
         {
-            throw new IllegalArgumentException("No '=' after rule: " + name); //$NON-NLS-1$
+            throw new AbnfParseException("No '=' after rule: " + name, abnf); //$NON-NLS-1$
         }
+        Rule rule = null;
+        boolean choice = false;
         if (abnf.peek() == '/')
         {
             abnf.read();
-            Rule rule = this.getRule(name);
-            if (rule == null)
-            {
-                return new Rule(name);
-            }
-
-            seqStack.clear();
-            seqStack.push(rule.getMainFragment());
-            this.handleChoice(seqStack);
-            return rule;
+            rule = this.getRule(name);
+            choice = (rule != null);
         }
-
-        Rule currentRule = new Rule(name);
+        if (rule == null)
+        {
+            rule = new Rule(name);
+        }
         seqStack.clear();
-        seqStack.push(currentRule.getMainFragment());
-        return currentRule;
+        seqStack.push((SequenceFragment) rule.getMainFragment());
+        if (choice)
+        {
+            this.handleChoice(seqStack);
+        }
+        return rule;
     }
 
     /**
@@ -385,10 +434,12 @@ public class RuleDictionary
      * @param seqStack a stack of {@link SequenceFragment} representing the current position in the current set of
      *            nested sequences
      * @throws IOException if there are IO troubles
+     * @throws AbnfParseException if unexpected characters are found
      */
-    private void parseFragments(AbnfReader abnf, Deque<SequenceFragment> seqStack) throws IOException
+    private void parseFragments(AbnfReader abnf, Deque<SequenceFragment> seqStack) throws IOException,
+                    AbnfParseException
     {
-        while (!abnf.eof() && abnf.peek() != '\n' && abnf.peek() != '\r')
+        while (!abnf.eof())
         {
             abnf.gobbleWhitespace();
 
@@ -396,27 +447,34 @@ public class RuleDictionary
 
             RuleFragment newFrag = null;
 
-            if (abnf.peek() == '"')
+            int peek = abnf.peek();
+            if (peek == ';' || peek == '\n' || peek == '\r')
+            {
+                abnf.findNextLine();
+                return;
+            }
+
+            if (peek == '"')
             {
                 StringFragment strFrag = StringFragment.parse(abnf);
                 newFrag = strFrag;
             }
-            else if (abnf.peek() == '%')
+            else if (peek == '%')
             {
                 LiteralFragment litFrag = LiteralFragment.parse(abnf);
                 newFrag = litFrag;
             }
-            else if (abnf.peek() == '<')
+            else if (peek == '<')
             {
                 WildcardFragment wc = WildcardFragment.parse(abnf);
                 newFrag = wc;
             }
-            else if (abnf.peek() == '/')
+            else if (peek == '/')
             {
                 abnf.read();
                 this.handleChoice(seqStack);
             }
-            else if (abnf.peek() == '(')
+            else if (peek == '(')
             {
                 abnf.read();
                 SequenceFragment seqFrag = new SequenceFragment();
@@ -424,7 +482,7 @@ public class RuleDictionary
                 seqStack.peek().nest(seqFrag);
                 seqStack.push(seqFrag);
             }
-            else if (abnf.peek() == '[')
+            else if (peek == '[')
             {
                 abnf.read();
                 SequenceFragment seqFrag = new SequenceFragment();
@@ -432,25 +490,27 @@ public class RuleDictionary
                 seqStack.peek().nest(seqFrag);
                 seqStack.push(seqFrag);
             }
-            else if (abnf.peek() == ')' || abnf.peek() == ']')
+            else if (peek == ')' || peek == ']')
             {
                 abnf.read();
                 seqStack.pop();
             }
-            else if (abnf.peek() == ';')
-            {
-                // break out - the next line is found by the caller
-                break;
-            }
             else
+            // named rule
             {
                 String name = abnf.parseName();
+                if (name.length() == 0)
+                {
+                    String str = '(' + new String(Character.toChars(peek)) + ')';
+                    throw new AbnfParseException("Unexpected character: U+" + Integer.toHexString(peek) + str, abnf); //$NON-NLS-1$
+                }
                 newFrag = new NamedFragment(name);
             }
 
             if (newFrag != null)
             {
                 newFrag.setOccurences(range);
+
                 seqStack.peek().append(newFrag);
             }
         }
@@ -466,7 +526,7 @@ public class RuleDictionary
      */
     private void handleChoice(Deque<SequenceFragment> seqStack)
     {
-        ChoiceFragment choice = new ChoiceFragment();
+        GroupFragment choice = new ChoiceFragment();
         SequenceFragment last = seqStack.pop();
         if (last.length() == 1)
         {
