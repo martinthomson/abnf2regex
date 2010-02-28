@@ -7,12 +7,7 @@ This is a java package, that can be build as an OSGi bundle.  Source is provided
 
  * TODO Complete test harnesses.
 
- * TODO Add options to select a particular pattern for output, rather than simply printing the entire file with regular expressions in ABNF comments.
-
- * TODO Add options to allow capture parentheses to be used for certain patterns instead of the non-capturing groups
- * currently used.
-
- * TODO Add options to set different regex schemes, Java, Perl, Javascript, sed, etc...
+ * TODO Add options to allow capture parentheses to be used for certain patterns instead of the non-capturing groups currently used.
 
  * TODO Complete javadoc on all classses.
 

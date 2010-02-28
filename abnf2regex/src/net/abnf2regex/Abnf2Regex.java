@@ -32,8 +32,6 @@ import java.util.regex.Pattern;
  * TODO Add options to allow capture parentheses to be used for certain patterns instead of the non-capturing groups
  * currently used.
  *
- * TODO Add options to set different regex schemes, Java, Perl, Javascript, sed, etc...
- *
  * TODO Complete javadoc on all classses.
  *
  * @author mathomson

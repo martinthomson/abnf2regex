@@ -30,6 +30,8 @@ public class RegexSyntax
     public static final String SYNTAX_GREP = "grep";
     /** The name of the Unix sed syntax, an alias for {@link #SYNTAX_POSIX} */
     public static final String SYNTAX_SED = "sed";
+    /** The name of the Perl syntax */
+    public static final String SYNTAX_PERL = "perl";
     /** The name of the syntax */
     private final String name;
     /** The wildcard character */
@@ -86,6 +88,8 @@ public class RegexSyntax
         RegexSyntax.syntaxes.put(posix.getName(), posix);
         RegexSyntax.syntaxes.put(RegexSyntax.SYNTAX_GREP, posix);
         RegexSyntax.syntaxes.put(RegexSyntax.SYNTAX_SED, posix);
+        RegexSyntax perl = new PerlRegexSyntax();
+        RegexSyntax.syntaxes.put(perl.getName(), perl);
     }
 
     /**
@@ -384,6 +388,7 @@ public class RegexSyntax
 
     /**
      * The wildcard string.
+     *
      * @param _wildcard the wildcard to set
      */
     protected void setWildcard(String _wildcard)
@@ -393,6 +398,7 @@ public class RegexSyntax
 
     /**
      * Get the wildcard string, usually '.'
+     *
      * @return the wildcard
      */
     public String getWildcard()
@@ -474,6 +480,52 @@ public class RegexSyntax
             this.setChoiceSeparator("\\|");
             this.setOccurences("\\*", "\\?", "\\+", "\\{", "\\}");
             this.setSpecialRanges(false);
+        }
+
+        @Override
+        public String character(int ch)
+        {
+            // Character quoting is rather simple for SED
+            switch (ch)
+            {
+                case '\n':
+                    return "\\n";
+                case '$':
+                case '*':
+                case '.':
+                case '[':
+                case '\\':
+                case '^':
+                    return "\\" + String.valueOf((char) ch);
+                default:
+                    return String.valueOf((char) ch);
+            }
+        }
+    }
+
+    /**
+     * Perl Syntax, as used by sed, grep, etc...
+     */
+    private static class PerlRegexSyntax extends RegexSyntax
+    {
+        PerlRegexSyntax()
+        {
+            super(RegexSyntax.SYNTAX_PERL);
+        }
+
+        @Override
+        protected String defaultCharacter(int ch)
+        {
+            if (Character.isLetterOrDigit(ch) || (ch > 0x1f) && (ch < 0x7f))
+            {
+                return Character.toString((char) ch);
+            }
+            String hexChar = RegexSyntax.hexChar(ch);
+            if (hexChar.length() > 2)
+            {
+                return "\\x{" + hexChar + '}';
+            }
+            return "\\x" + hexChar;
         }
 
         @Override
