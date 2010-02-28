@@ -55,7 +55,7 @@ public class Abnf2Regex
         String testString = null;
         int print = 1;
 
-        while (args[0].charAt(0) == '-')
+        while (args.length > 0 && args[0].charAt(0) == '-')
         {
             if ((args.length >= 3) && args[0].equals("-t")) //$NON-NLS-1$
             {
