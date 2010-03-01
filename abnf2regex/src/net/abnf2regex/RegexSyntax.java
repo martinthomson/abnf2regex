@@ -1,12 +1,3 @@
-/**
- * Copyright (c) Andrew Corporation,
- * All Rights Reserved.
- *
- * This software is the confidential and proprietary information of
- * Andrew Corporation. You shall not disclose such confidential
- * information and shall use it only in accordance with the terms
- * of the license agreement you entered into with Andrew Corporation.
- */
 package net.abnf2regex;
 
 import java.util.HashMap;
