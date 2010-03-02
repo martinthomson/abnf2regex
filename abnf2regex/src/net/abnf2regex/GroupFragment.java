@@ -127,7 +127,7 @@ public abstract class GroupFragment extends RuleFragment
                 return false;
             }
         }
-        return (group.length() == 1) || ((group.getClass() == this.getClass()) && group.getOccurences().isOnce());
+        return group.getOccurences().isOnce() && ((group.length() == 1) || (group.getClass() == this.getClass()));
     }
 
     /**
@@ -208,7 +208,7 @@ public abstract class GroupFragment extends RuleFragment
      */
     protected boolean appendAll(GroupFragment group)
     {
-        if (this.getOccurences().equals(group.getOccurences()))
+        if (group.getOccurences().isOnce())
         {
             for (RuleFragment rf : group.fragments)
             {

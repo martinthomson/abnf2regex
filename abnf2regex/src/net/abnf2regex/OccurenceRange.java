@@ -216,6 +216,11 @@ public class OccurenceRange
         {
             return new OccurenceRange(this.getMin() * other.getMin(), OccurenceRange.UNBOUNDED);
         }
+        if ((this.equals(new OccurenceRange(0, 1)) && other.equals(new OccurenceRange(1, OccurenceRange.UNBOUNDED)))
+                        || (other.equals(new OccurenceRange(0, 1)) && this.equals(new OccurenceRange(1, OccurenceRange.UNBOUNDED))))
+        {
+            return new OccurenceRange(0, OccurenceRange.UNBOUNDED);
+        }
         return null;
     }
 

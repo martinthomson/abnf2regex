@@ -147,6 +147,9 @@ public class OccurenceRangeTest
         Assert.assertEquals(new OccurenceRange(4, OccurenceRange.UNBOUNDED),
                             new OccurenceRange(1, OccurenceRange.UNBOUNDED)
                                             .multiply(new OccurenceRange(4, OccurenceRange.UNBOUNDED)));
+        Assert.assertEquals(new OccurenceRange(0, OccurenceRange.UNBOUNDED),
+                            new OccurenceRange(1, OccurenceRange.UNBOUNDED)
+                                            .multiply(new OccurenceRange(0, 1)));
         Assert.assertEquals(new OccurenceRange(4, OccurenceRange.UNBOUNDED),
                             new OccurenceRange(4, OccurenceRange.UNBOUNDED)
                                             .multiply(new OccurenceRange(1, OccurenceRange.UNBOUNDED)));

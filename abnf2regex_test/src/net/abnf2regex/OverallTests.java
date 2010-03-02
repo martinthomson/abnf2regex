@@ -218,7 +218,8 @@ public class OverallTests
         test("groupedseq2", "2%x31 (2%x32 3%x33)", "(?:12){2}3{3}", "(2%x31.32 3%x33)");
         test("groupedseq3", "2%x31 4(2%x32 3%x33)", "1{2}(?:2{2}3{3}){4}", "(2%x31 4(2%x32 3%x33))");
         test("groupedseq4", "2%x31 2(%x32 3%x33)", "(?:123{3}){2}", "2(%x31.32 3%x33)");
-
+        test("groupedseq5", "2(2%x31 %x32) 2%x33", "(?:1{2}23){2}", "2(2%x31 %x32.33)");
+        test("nestedoptional", "[[DIGIT \":\"] DIGIT]", "(?:(?:\\d:)?\\d)?");
     }
 
     /**
@@ -246,7 +247,8 @@ public class OverallTests
     @Test
     public void testCombinations()
     {
-        test("rulename", "ALPHA *(ALPHA / DIGIT / \"-\")", "");
+        test("rulename", "ALPHA *(ALPHA / DIGIT / \"-\")", "[A-Za-z][\\-\\dA-Za-z]*", "(ALPHA *(ALPHA / DIGIT / \"-\"))");
+        test("seqchoice", "(%x31 / %x32) (%x33 / %x34)", "[12][34]", "((%x31 / %x32) (%x33 / %x34))");
         test("precedence", "%x31 2%x32 / 3%x33", "(?:12{2}|3{3})", "((%x31 2%x32) / 3%x33)");
         test("precedence2", "2%x31 2%x32 / 3%x33", "(?:(?:12){2}|3{3})", "(2%x31.32 / 3%x33)");
         test("precedence2", "%x31 / 2%x32 3%x33", "(?:1|2{2}3{3})", "(%x31 / (2%x32 3%x33))");

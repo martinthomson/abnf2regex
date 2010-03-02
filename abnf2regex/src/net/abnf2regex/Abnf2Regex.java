@@ -111,6 +111,9 @@ public class Abnf2Regex
                 Matcher m = p.matcher(testString);
                 String matches = m.matches() ? "matches" : "does not match"; //$NON-NLS-1$ //$NON-NLS-2$
                 System.out.println("Rule \"" + testRule + "\" " + matches + ": " + testString); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                Rule rule = dict.getRule(testRule);
+                System.out.println("Rule: " + rule.toAbnf()); //$NON-NLS-1$
+                System.out.println("Expanded: " + dict.expandRule(rule).toAbnf()); //$NON-NLS-1$
                 System.out.println("Regex: " + regex); //$NON-NLS-1$
             }
             catch (RuleResolutionException ex)

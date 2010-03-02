@@ -74,6 +74,8 @@ public class CharRangeTest
         checkEquals(new CharRange(0x40, 0x44), new CharRange(0x42, 0x44).merge(new CharRange(0x40, 0x41)));
         checkEquals(new CharRange(0x40, 0x44), new CharRange(0x40, 0x44).merge(new CharRange(0x40, 0x41)));
         checkEquals(new CharRange(0x40, 0x44), new CharRange(0x42, 0x44).merge(new CharRange(0x40, 0x44)));
+        checkEquals(new CharRange(0x40, 0x40), new CharRange(0x40, 0x40).merge(new CharRange(0x40, 0x40)));
+        Assert.assertNull(new CharRange(0x40, 0x40).merge(new CharRange(0x42, 0x42)));
     }
 
     /**

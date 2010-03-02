@@ -346,7 +346,10 @@ public class RegexSyntax
                 bld.append(this.getListStart());
             }
             bld.append(this.character(cr.getStart()));
-            bld.append('-');
+            if (cr.getStart() + 1 < cr.getEnd())
+            {
+                bld.append('-');
+            }
             bld.append(this.character(cr.getEnd()));
             if (brackets)
             {

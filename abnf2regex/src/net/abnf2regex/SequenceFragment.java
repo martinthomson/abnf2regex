@@ -25,7 +25,7 @@ public class SequenceFragment extends GroupFragment
                 this.fragments.addLast(frag);
             }
         }
-        else if (!mergeWithLast(frag))
+        else if ((frag instanceof ChoiceFragment) || !mergeWithLast(frag))
         {
             this.fragments.addLast(frag);
         }
