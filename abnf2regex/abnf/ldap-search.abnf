@@ -1,0 +1,42 @@
+filter         = LPAREN filtercomp RPAREN
+filtercomp     = and / or / not / item
+and            = AMPERSAND filterlist
+or             = VERTBAR filterlist
+not            = EXCLAMATION filter
+filterlist     = 1*filter
+item           = simple / present / substring / extensible
+simple         = attr filtertype assertionvalue
+filtertype     = equal / approx / greaterorequal / lessorequal
+equal          = EQUALS
+approx         = TILDE EQUALS
+greaterorequal = RANGLE EQUALS
+lessorequal    = LANGLE EQUALS
+extensible     = ( attr [dnattrs]
+               [matchingrule] COLON EQUALS assertionvalue )
+           / ( [dnattrs]
+                matchingrule COLON EQUALS assertionvalue )
+present        = attr EQUALS ASTERISK
+substring      = attr EQUALS [initial] any [final]
+initial        = assertionvalue
+any            = ASTERISK *(assertionvalue ASTERISK)
+final          = assertionvalue
+attr           = attributedescription
+                   ; The attributedescription rule is defined in
+                   ; Section 2.5 of [RFC4512].
+dnattrs        = COLON "dn"
+matchingrule   = COLON oid
+assertionvalue = valueencoding
+; The <valueencoding> rule is used to encode an <AssertionValue>
+; from Section 4.1.6 of [RFC4511].
+valueencoding  = 0*(normal / escaped)
+normal         = UTF1SUBSET / UTFMB
+escaped        = ESC HEX HEX
+UTF1SUBSET     = %x01-27 / %x2B-5B / %x5D-7F
+                    ; UTF1SUBSET excludes 0x00 (NUL), LPAREN,
+                    ; RPAREN, ASTERISK, and ESC.
+EXCLAMATION    = %x21 ; exclamation mark ("!")
+AMPERSAND      = %x26 ; ampersand (or AND symbol) ("&")
+ASTERISK       = %x2A ; asterisk ("*")
+COLON          = %x3A ; colon (":")
+VERTBAR        = %x7C ; vertical bar (or pipe) ("|")
+TILDE          = %x7E ; tilde ("~")
