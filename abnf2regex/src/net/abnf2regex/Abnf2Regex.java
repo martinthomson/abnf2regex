@@ -69,7 +69,7 @@ public class Abnf2Regex
                 {
                     System.out.println(ex.getMessage() + ": " + ex.getSyntaxName()); //$NON-NLS-1$
                 }
-                args = Arrays.copyOfRange(args, 1, args.length);
+                args = Arrays.copyOfRange(args, 2, args.length);
             }
         }
 

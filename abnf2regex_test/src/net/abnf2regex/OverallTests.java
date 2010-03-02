@@ -246,6 +246,7 @@ public class OverallTests
     @Test
     public void testCombinations()
     {
+        test("rulename", "ALPHA *(ALPHA / DIGIT / \"-\")", "");
         test("precedence", "%x31 2%x32 / 3%x33", "(?:12{2}|3{3})", "((%x31 2%x32) / 3%x33)");
         test("precedence2", "2%x31 2%x32 / 3%x33", "(?:(?:12){2}|3{3})", "(2%x31.32 / 3%x33)");
         test("precedence2", "%x31 / 2%x32 3%x33", "(?:1|2{2}3{3})", "(%x31 / (2%x32 3%x33))");

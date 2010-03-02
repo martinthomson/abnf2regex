@@ -90,7 +90,7 @@ public class Rule
         {
             if (!Rule.warned.contains(this.getName()))
             {
-                System.err.println("Warning: rule '" + this.getName() + "' recurses."); //$NON-NLS-1$ //$NON-NLS-2$
+                System.err.println("; Warning: rule '" + this.getName() + "' recurses."); //$NON-NLS-1$ //$NON-NLS-2$
                 Rule.warned.add(this.getName());
             }
             RegexSyntax syntax = RegexSyntax.getCurrent();

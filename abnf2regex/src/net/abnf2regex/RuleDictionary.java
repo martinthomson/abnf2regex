@@ -175,7 +175,7 @@ public class RuleDictionary
             String reason = named.getName() + ((rule == null) ? " does not exist" : " recurses"); //$NON-NLS-1$//$NON-NLS-2$
             if (!RuleDictionary.warned.contains(named.getName()))
             {
-                System.err.println("Warning: rule " + reason); //$NON-NLS-1$
+                System.err.println("; Warning: rule " + reason); //$NON-NLS-1$
                 RuleDictionary.warned.add(named.getName());
             }
 
