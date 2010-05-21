@@ -11,12 +11,9 @@ package net.abnf2regex.easymock;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 
 import org.easymock.classextension.EasyClassMock;
+import org.easymock.classextension.IMockBuilder;
 
 /**
  * A few helper methods that enable the creation of mock objects with specific criteria on the selection of mocked
@@ -35,18 +32,15 @@ public class EasyMockHelper
      */
     public static <T> T fillAbstractWithMock(Class<T> type)
     {
-        Method[] methodArray = type.getDeclaredMethods();
-        List<Method> methods = new ArrayList<Method>(Arrays.asList(methodArray));
-        Iterator<Method> it = methods.iterator();
-        while (it.hasNext())
+        IMockBuilder<T> builder = EasyClassMock.createMockBuilder(type);
+        for (Method m : type.getDeclaredMethods())
         {
-            Method m = it.next();
-            if (!Modifier.isAbstract(m.getModifiers()))
+            if (Modifier.isAbstract(m.getModifiers()))
             {
-                it.remove();
+                builder.addMockedMethod(m);
             }
         }
-        return EasyClassMock.createMock(type, methods.toArray(new Method[0]));
+        return builder.createMock();
     }
 
     /**
@@ -59,17 +53,14 @@ public class EasyMockHelper
      */
     public static <T> T createCompleteMock(Class<T> type)
     {
-        Method[] methodArray = type.getDeclaredMethods();
-        List<Method> methods = new ArrayList<Method>(Arrays.asList(methodArray));
-        Iterator<Method> it = methods.iterator();
-        while (it.hasNext())
+        IMockBuilder<T> builder = EasyClassMock.createMockBuilder(type);
+        for (Method m : type.getDeclaredMethods())
         {
-            Method m = it.next();
-            if (Modifier.isPrivate(m.getModifiers()))
+            if (! Modifier.isPrivate(m.getModifiers()))
             {
-                it.remove();
+                builder.addMockedMethod(m);
             }
         }
-        return EasyClassMock.createMock(type, methods.toArray(new Method[0]));
+        return builder.createMock();
     }
 }

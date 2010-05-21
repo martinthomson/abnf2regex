@@ -107,7 +107,6 @@ public class ChoiceFragment extends GroupFragment
         }
     }
 
-
     /**
      * Get a string for the single character fragments in the choice, so we can turn it into a [list]
      *
@@ -115,26 +114,20 @@ public class ChoiceFragment extends GroupFragment
      */
     private String getSingleCharacterList(Collection<RuleFragment> copy)
     {
-        List<CharRange> singles = new ArrayList<CharRange>();
-        // the number of single characters added (we need brackets if this is > 1)
-        boolean range = extractSingles(copy, singles);
+        List<CharRange> singles = extractSingles(copy);
         if (singles.size() > 0)
         {
             mergeRanges(singles);
 
             RegexSyntax syntax = RegexSyntax.getCurrent();
             StringBuilder bld = new StringBuilder();
-            range |= (singles.size() > 1);
-            if (range)
-            {
-                bld.insert(0, syntax.getListStart());
-            }
             for (CharRange cr : singles)
             {
                 bld.append(syntax.range(cr, false));
             }
-            if (range)
+            if ((singles.size() > 1) || (bld.length() > 2))
             {
+                bld.insert(0, syntax.getListStart());
                 bld.append(syntax.getListEnd());
             }
 
@@ -146,14 +139,16 @@ public class ChoiceFragment extends GroupFragment
     /**
      * Extract all fragments from the list that contain single character rules.
      *
+     * TODO: this method doesn't properly handle java syntax regular expressions that contain characters that require
+     * two <code>char</code> entries.
+     *
      * @param copy a copy, from which single character rules are extracted.
-     * @param singles the target collection of single characters.
-     * @return
+     * @return a collection of single characters.
      */
-    private boolean extractSingles(Collection<RuleFragment> copy, Collection<CharRange> singles)
+    private List<CharRange> extractSingles(Collection<RuleFragment> copy)
     {
+        List<CharRange> singles = new ArrayList<CharRange>();
         Iterator<RuleFragment> it = copy.iterator();
-        boolean range = false;
         while (it.hasNext())
         {
             RuleFragment rf = it.next();
@@ -167,7 +162,6 @@ public class ChoiceFragment extends GroupFragment
                     {
                         it.remove();
                         singles.add(scr);
-                        range |= (scr.getStart() < scr.getEnd());
                     }
                 }
                 else if (rf instanceof StringFragment)
@@ -183,7 +177,7 @@ public class ChoiceFragment extends GroupFragment
                 }
             }
         }
-        return range;
+        return singles;
     }
 
     /**

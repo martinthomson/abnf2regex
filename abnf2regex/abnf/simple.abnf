@@ -1,2 +1,0 @@
-DIGIT = %x30-39
-HEX = DIGIT / %x41-46 / %x61-66

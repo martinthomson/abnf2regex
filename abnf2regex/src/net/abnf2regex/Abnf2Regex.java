@@ -4,6 +4,7 @@ package net.abnf2regex;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -151,6 +152,9 @@ public class Abnf2Regex
             else
             {
                 File f = new File(fname);
+                if (! f.exists()){
+                    throw new FileNotFoundException(f.getName());
+                }
 
                 dict.parse(new FileInputStream(f), f.toString());
             }

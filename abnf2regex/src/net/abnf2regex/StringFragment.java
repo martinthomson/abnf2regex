@@ -112,19 +112,19 @@ public class StringFragment extends RuleFragment
     @Override
     protected boolean needsRegexParens()
     {
-        return this.str.length() != 1 && super.needsRegexParens();
+        return this.str.codePointCount(0, this.str.length()) != 1 && super.needsRegexParens();
     }
 
     /**
      * Extract a single character if this is a single character rule.
      *
-     * @return -1 if the string is other than 1
+     * @return -1 if the string is other than 1 character long.
      */
     public int singleChar()
     {
-        if (this.str.length() == 1)
+        if (this.str.codePointCount(0, this.str.length()) == 1)
         {
-            return this.str.charAt(0);
+            return this.str.codePointAt(0);
         }
         return -1;
     }

@@ -6,7 +6,7 @@ Bundle-Version: 1.0.0
 Bundle-Vendor: Martin Thomson
 Fragment-Host: abnf2regex;bundle-version="1.0.0"
 Require-Bundle: org.junit4,
- easymock,
+ org.easymock,
  net.sf.cglib,
  junitext
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

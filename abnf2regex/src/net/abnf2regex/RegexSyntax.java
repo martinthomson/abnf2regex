@@ -330,7 +330,8 @@ public class RegexSyntax
      *
      * @param cr the range
      * @param brackets whether to add brackets or not
-     * @return "\\d" (for [0-9] ranges) or the default range.
+     * @return "\\d" (for [0-9] ranges) or the default range. Any class overriding this method must ensure returned
+     *         values less than three characters long do not require brackets.
      */
     public String range(CharRange cr, boolean brackets)
     {
@@ -445,6 +446,8 @@ public class RegexSyntax
             {
                 case '&':
                     return "&amp;";
+                case '"':
+                    return "&quot;";
                 case '<':
                     return "&lt;";
             }

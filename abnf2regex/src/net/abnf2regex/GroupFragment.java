@@ -194,9 +194,13 @@ public abstract class GroupFragment extends RuleFragment
             copy.fragments = new ArrayDeque<RuleFragment>(this.fragments);
             return copy;
         }
-        catch (Exception ex)
+        catch (InstantiationException ex)
         {
-            throw new RuntimeException(ex); // ugly? oh yeah.
+            throw new IllegalStateException("Unable to instantiate GroupFragment class: " + this.getClass(), ex); //$NON-NLS-1$
+        }
+        catch (IllegalAccessException ex)
+        {
+            throw new IllegalStateException("Unable to instantiate GroupFragment class: " + this.getClass(), ex); //$NON-NLS-1$
         }
     }
 

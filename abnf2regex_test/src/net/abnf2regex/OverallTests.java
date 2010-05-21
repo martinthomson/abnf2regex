@@ -247,7 +247,8 @@ public class OverallTests
     @Test
     public void testCombinations()
     {
-        test("rulename", "ALPHA *(ALPHA / DIGIT / \"-\")", "[A-Za-z][\\-\\dA-Za-z]*", "(ALPHA *(ALPHA / DIGIT / \"-\"))");
+        test("rulename", "ALPHA *(ALPHA / DIGIT / \"-\")", "[A-Za-z][\\-\\dA-Za-z]*",
+             "(ALPHA *(ALPHA / DIGIT / \"-\"))");
         test("seqchoice", "(%x31 / %x32) (%x33 / %x34)", "[12][34]", "((%x31 / %x32) (%x33 / %x34))");
         test("precedence", "%x31 2%x32 / 3%x33", "(?:12{2}|3{3})", "((%x31 2%x32) / 3%x33)");
         test("precedence2", "2%x31 2%x32 / 3%x33", "(?:(?:12){2}|3{3})", "(2%x31.32 / 3%x33)");
@@ -316,6 +317,37 @@ public class OverallTests
              "(%x31.32 / %x33.34)");
         test("equalslashprecedence2", "3%x31 / 3%x32\r\nequalslashprecedence2 =/ 4%x33 / 4%x34", "(?:[12]{3}|[34]{4})",
              "(3(%x31 / %x32) / 4(%x33 / %x34))");
+    }
+
+    /**
+     * Test recursion.
+     */
+    @Test
+    public void testRecursion()
+    {
+        test("direct", "direct", ".*");
+        test("indirect", "other\r\nother = indirect", ".*", "other");
+    }
+
+    /**
+     * Test recursion.
+     */
+    @Test
+    public void testResolving()
+    {
+        try
+        {
+            this.rd.parse(new StringReader("nonexistent" + " = " + "nosuchrule" + "\r\n"), "nonexistent");
+            Assert.assertFalse("resolve " + "nonexistent", this.rd.resolve());
+        }
+        catch (IOException ioex)
+        {
+            Assert.fail(ioex.getMessage());
+        }
+        catch (AbnfParseException abnfex)
+        {
+            Assert.fail(abnfex.getMessage());
+        }
     }
 
     // /**

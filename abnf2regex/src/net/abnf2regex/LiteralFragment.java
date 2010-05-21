@@ -27,26 +27,13 @@ public class LiteralFragment extends RuleFragment
     }
 
     /**
-     * Create a literal fragment based on the contents of a string.
-     *
-     * @param str a string, which is case sensitive, unlike the input to {@link StringFragment}
-     */
-    public LiteralFragment(String str)
-    {
-        for (char c : str.toCharArray())
-        {
-            this.ranges.add(new CharRange(c));
-        }
-    }
-
-    /**
      * Parse out a literal sequence, starting from the leading '%', which is assumed to have been recognized by the
      * caller using {@link AbnfReader#peek()}.
      *
      * @param abnf the input reader
      * @throws IOException when reading fails for any reason
      */
-    public static LiteralFragment parse(AbnfReader abnf) throws IOException
+    public static LiteralFragment parse(AbnfReader abnf) throws IOException, AbnfParseException
     {
         LiteralFragment frag = new LiteralFragment();
         abnf.read(); // leading '%'
@@ -76,7 +63,7 @@ public class LiteralFragment extends RuleFragment
         return frag;
     }
 
-    private static int getRadix(AbnfReader abnf) throws IOException
+    private static int getRadix(AbnfReader abnf) throws IOException, AbnfParseException
     {
         int radix;
         char radch = Character.toLowerCase((char) abnf.read());
@@ -94,7 +81,7 @@ public class LiteralFragment extends RuleFragment
         }
         else
         {
-            throw new IllegalArgumentException("invalid radix for % sequence"); //$NON-NLS-1$
+            throw new AbnfParseException("Invalid radix for % sequence", abnf); //$NON-NLS-1$
         }
         return radix;
     }

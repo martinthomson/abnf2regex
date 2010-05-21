@@ -15,6 +15,8 @@ dec-octet     = DIGIT                 ; 0-9
               / "1" 2DIGIT            ; 100-199
               / "2" %x30-34 DIGIT     ; 200-249
               / "25" %x30-35          ; 250-255
-IPv6prefix    = (IPv6address / IPv6short) "/" v6cidr
-IPv6short   = *7( h16 ":" ) h16
-v6cidr        = 1*2DIGIT / "1" (2DIGIT / "2" %x30-38)
+IPv6prefix    = (IPv6address / IPv6short) "/" v6prefix
+IPv6short     = *6( h16 ":" ) h16 ; fewer than the full 8 pieces of the address
+v6prefix      = 1*2DIGIT / "1" (2DIGIT / "2" %x30-38)
+IPv4prefix    = IPv4address "/" v4cidr
+v4cidr        = ([%x31-32] DIGIT) / ("3" %x30-32)

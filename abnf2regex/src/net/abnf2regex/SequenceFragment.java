@@ -44,7 +44,7 @@ public class SequenceFragment extends GroupFragment
         if (this.fragments.size() > 0)
         {
             RuleFragment last = this.fragments.getLast();
-            if (last.getOccurences().equals(frag.getOccurences()) && last.getClass().isAssignableFrom(frag.getClass()))
+            if (last.getOccurences().equals(frag.getOccurences()))
             {
                 return last.append(frag);
             }

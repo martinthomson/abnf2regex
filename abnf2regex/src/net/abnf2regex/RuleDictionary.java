@@ -146,9 +146,13 @@ public class RuleDictionary
                     this.expandCopyFragments(group, copy, usedNames);
                     to.append(copy);
                 }
-                catch (Exception ex)
+                catch (InstantiationException ex)
                 {
-                    throw new IllegalStateException("Unknown GroupFragment class: " + rf.getClass(), ex); //$NON-NLS-1$
+                    throw new IllegalStateException("Unable to instantiate GroupFragment class: " + rf.getClass(), ex); //$NON-NLS-1$
+                }
+                catch (IllegalAccessException ex)
+                {
+                    throw new IllegalStateException("Unable to instantiate GroupFragment class: " + rf.getClass(), ex); //$NON-NLS-1$
                 }
             }
             else
