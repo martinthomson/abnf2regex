@@ -10,7 +10,6 @@ import net.abnf2regex.easymock.Capture;
 import net.abnf2regex.easymock.EasyMockHelper;
 
 import org.easymock.EasyMock;
-import org.easymock.classextension.EasyClassMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,9 +74,9 @@ public class RuleFragmentTest
     @Test
     public void testGetSetOccurences()
     {
-        EasyClassMock.replay(this.rf, this.or);
+        EasyMock.replay(this.rf, this.or);
         Assert.assertSame(this.or, this.rf.getOccurences());
-        EasyClassMock.verify(this.rf, this.or);
+        EasyMock.verify(this.rf, this.or);
     }
 
     /**
@@ -90,14 +89,14 @@ public class RuleFragmentTest
         EasyMock.expect(Boolean.valueOf(this.or.isOnce())).andReturn(Boolean.TRUE);
         EasyMock.expect(Boolean.valueOf(this.or.isOnce())).andReturn(Boolean.FALSE);
         EasyMock.expect(Boolean.valueOf(this.or.isOnce())).andReturn(Boolean.FALSE);
-        EasyClassMock.replay(this.rf, this.or);
+        EasyMock.replay(this.rf, this.or);
 
         Assert.assertFalse(this.rf.needsAbnfParens());
         Assert.assertFalse(this.rf.needsRegexParens());
 
         Assert.assertTrue(this.rf.needsAbnfParens());
         Assert.assertTrue(this.rf.needsRegexParens());
-        EasyClassMock.verify(this.rf, this.or);
+        EasyMock.verify(this.rf, this.or);
     }
 
     /**
@@ -107,7 +106,7 @@ public class RuleFragmentTest
     public void testToAbnfOrString()
     {
         List<Capture<StringBuilder>> sameStringBufList = new ArrayList<Capture<StringBuilder>>();
-        EasyClassMock.checkOrder(this.or, true);
+        EasyMock.checkOrder(this.or, true);
 
         for (int i = 0; i < 2; ++i)
         {
@@ -119,7 +118,7 @@ public class RuleFragmentTest
             EasyMock.expect(this.rf.buildAbnf(sameStringBuf.capture())).andAnswer(sameStringBuf);
             EasyMock.expect(this.or.addAbnfTrail(sameStringBuf.capture(), EasyMock.eq(false))).andAnswer(sameStringBuf);
         }
-        EasyClassMock.replay(this.rf, this.or);
+        EasyMock.replay(this.rf, this.or);
 
         String abnf = this.rf.toAbnf();
         Assert.assertEquals(sameStringBufList.get(0).getValue().toString(), abnf);
@@ -128,7 +127,7 @@ public class RuleFragmentTest
         Assert.assertEquals(sameStringBufList.get(1).getValue().toString(), str);
         Assert.assertEquals(str, abnf);
 
-        EasyClassMock.verify(this.rf, this.or);
+        EasyMock.verify(this.rf, this.or);
     }
 
     /**
@@ -139,7 +138,7 @@ public class RuleFragmentTest
     {
         try
         {
-            PrintWriter pw = EasyClassMock.createMock(PrintWriter.class);
+            PrintWriter pw = EasyMock.createMock(PrintWriter.class);
             Set<String> usedNames = new HashSet<String>();
             String regOccurs = "{n}"; //$NON-NLS-1$
 
@@ -148,11 +147,11 @@ public class RuleFragmentTest
             this.rf.buildRegex(pw, usedNames);
             pw.print(regOccurs);
 
-            EasyClassMock.replay(this.rf, this.or, pw);
+            EasyMock.replay(this.rf, this.or, pw);
 
             this.rf.writeRegex(pw, usedNames);
 
-            EasyClassMock.verify(this.rf, this.or, pw);
+            EasyMock.verify(this.rf, this.or, pw);
         }
         catch (RuleResolutionException ex1)
         {
@@ -168,7 +167,7 @@ public class RuleFragmentTest
     {
         try
         {
-            PrintWriter pw = EasyClassMock.createMock(PrintWriter.class);
+            PrintWriter pw = EasyMock.createMock(PrintWriter.class);
             Set<String> usedNames = new HashSet<String>();
             String regOccurs = "{n}"; //$NON-NLS-1$
 
@@ -179,11 +178,11 @@ public class RuleFragmentTest
             EasyMock.expect(this.or.getRegexOccurences()).andReturn(regOccurs);
             pw.print(regOccurs);
 
-            EasyClassMock.replay(this.rf, this.or, pw);
+            EasyMock.replay(this.rf, this.or, pw);
 
             this.rf.writeRegex(pw, usedNames);
 
-            EasyClassMock.verify(this.rf, this.or, pw);
+            EasyMock.verify(this.rf, this.or, pw);
         }
         catch (RuleResolutionException ex1)
         {

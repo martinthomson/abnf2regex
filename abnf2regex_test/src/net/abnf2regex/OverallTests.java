@@ -203,23 +203,24 @@ public class OverallTests
     @Test
     public void testSequences()
     {
-        test("literals", "%x31 %x32", "12", "%x31.32");
-        test("nospace", "%x31%x32", "12", "%x31.32");
-        test("repeat", "%x31 %x31", "11", "%x31.31");
-        test("strings", "\"1\" \"2\"", "12", "\"12\"");
-        test("repeatstr", "\"1\" \"1\"", "11", "\"11\"");
-        test("mixed", "\"1\" %x32", "12", "(\"1\" %x32)");
-        test("recurrencesame", "2%x31 2%x32", "(?:12){2}", "2%x31.32");
-        test("recurrencedifferent", "2%x31 3%x32", "1{2}2{3}", "(2%x31 3%x32)");
-        test("recurrencesamestr", "2\"1\" 2\"2\"", "(?:12){2}", "2\"12\"");
-        test("recurrencedifferentstr", "2\"1\" 3\"2\"", "1{2}2{3}", "(2\"1\" 3\"2\")");
-
-        test("groupedseq1", "2%x31 2%x32 3%x33", "(?:12){2}3{3}", "(2%x31.32 3%x33)");
-        test("groupedseq2", "2%x31 (2%x32 3%x33)", "(?:12){2}3{3}", "(2%x31.32 3%x33)");
-        test("groupedseq3", "2%x31 4(2%x32 3%x33)", "1{2}(?:2{2}3{3}){4}", "(2%x31 4(2%x32 3%x33))");
-        test("groupedseq4", "2%x31 2(%x32 3%x33)", "(?:123{3}){2}", "2(%x31.32 3%x33)");
+//        test("literals", "%x31 %x32", "12", "%x31.32");
+//        test("nospace", "%x31%x32", "12", "%x31.32");
+//        test("repeat", "%x31 %x31", "11", "%x31.31");
+//        test("strings", "\"1\" \"2\"", "12", "\"12\"");
+//        test("repeatstr", "\"1\" \"1\"", "11", "\"11\"");
+//        test("mixed", "\"1\" %x32", "12", "(\"1\" %x32)");
+//        test("recurrencesame", "2%x31 2%x32", "(?:12){2}", "2%x31.32");
+//        test("recurrencedifferent", "2%x31 3%x32", "1{2}2{3}", "(2%x31 3%x32)");
+//        test("recurrencesamestr", "2\"1\" 2\"2\"", "(?:12){2}", "2\"12\"");
+//        test("recurrencedifferentstr", "2\"1\" 3\"2\"", "1{2}2{3}", "(2\"1\" 3\"2\")");
+//
+//        test("groupedseq1", "2%x31 2%x32 3%x33", "(?:12){2}3{3}", "(2%x31.32 3%x33)");
+//        test("groupedseq2", "2%x31 (2%x32 3%x33)", "(?:12){2}3{3}", "(2%x31.32 3%x33)");
+//        test("groupedseq3", "2%x31 4(2%x32 3%x33)", "1{2}(?:2{2}3{3}){4}", "(2%x31 4(2%x32 3%x33))");
+//        test("groupedseq4", "2%x31 2(%x32 3%x33)", "(?:123{3}){2}", "2(%x31.32 3%x33)");
         test("groupedseq5", "2(2%x31 %x32) 2%x33", "(?:1{2}23){2}", "2(2%x31 %x32.33)");
-        test("nestedoptional", "[[DIGIT \":\"] DIGIT]", "(?:(?:\\d:)?\\d)?");
+//        test("nestedoptional", "[[DIGIT \":\"] DIGIT]", "(?:(?:\\d:)?\\d)?");
+//        test("sequencefollowschoice", "%x31 ( %x32 / %x33 ) %x34", "1[23]4", "(%x31 (%x32 / %x33) %x34)");
     }
 
     /**

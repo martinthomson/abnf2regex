@@ -1,19 +1,10 @@
-/**
- * Copyright (c) Andrew Corporation,
- * All Rights Reserved.
- *
- * This software is the confidential and proprietary information of
- * Andrew Corporation. You shall not disclose such confidential
- * information and shall use it only in accordance with the terms
- * of the license agreement you entered into with Andrew Corporation.
- */
 package net.abnf2regex.easymock;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import org.easymock.classextension.EasyClassMock;
-import org.easymock.classextension.IMockBuilder;
+import org.easymock.EasyMock;
+import org.easymock.IMockBuilder;
 
 /**
  * A few helper methods that enable the creation of mock objects with specific criteria on the selection of mocked
@@ -32,7 +23,7 @@ public class EasyMockHelper
      */
     public static <T> T fillAbstractWithMock(Class<T> type)
     {
-        IMockBuilder<T> builder = EasyClassMock.createMockBuilder(type);
+        IMockBuilder<T> builder = EasyMock.createMockBuilder(type);
         for (Method m : type.getDeclaredMethods())
         {
             if (Modifier.isAbstract(m.getModifiers()))
@@ -53,7 +44,7 @@ public class EasyMockHelper
      */
     public static <T> T createCompleteMock(Class<T> type)
     {
-        IMockBuilder<T> builder = EasyClassMock.createMockBuilder(type);
+        IMockBuilder<T> builder = EasyMock.createMockBuilder(type);
         for (Method m : type.getDeclaredMethods())
         {
             if (! Modifier.isPrivate(m.getModifiers()))

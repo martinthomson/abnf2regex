@@ -3,7 +3,6 @@ package net.abnf2regex;
 import java.io.IOException;
 
 import org.easymock.EasyMock;
-import org.easymock.classextension.EasyClassMock;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -201,7 +200,7 @@ public class OccurenceRangeTest
     private void reallyTestParse(int min, int max, boolean minPresent, boolean starPresent, boolean maxPresent)
                     throws IOException
     {
-        AbnfReader reader = EasyClassMock.createMock(AbnfReader.class);
+        AbnfReader reader = EasyMock.createMock(AbnfReader.class);
         if (minPresent)
         {
             testParseNumber(reader, min);
@@ -228,10 +227,10 @@ public class OccurenceRangeTest
             EasyMock.expect(Integer.valueOf(reader.peek())).andReturn(Integer.valueOf('?'));
         }
 
-        EasyClassMock.replay(reader);
+        EasyMock.replay(reader);
         OccurenceRange or = OccurenceRange.parse(reader);
         Assert.assertEquals(new OccurenceRange(min, max), or);
-        EasyClassMock.verify(reader);
+        EasyMock.verify(reader);
     }
 
     /**
@@ -254,7 +253,7 @@ public class OccurenceRangeTest
     @Test
     public void testEquals()
     {
-        junitx.framework.Assert.assertEqualsHashCodeSymbiotic(OccurenceRange.class);
+//        junitx.framework.Assert.assertEqualsHashCodeSymbiotic(OccurenceRange.class);
 
         // simple comparison
         Assert.assertTrue(new OccurenceRange(4, 5).equals(new OccurenceRange(4, 5)));

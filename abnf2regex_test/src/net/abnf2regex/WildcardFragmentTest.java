@@ -10,7 +10,6 @@ import java.util.Set;
 import junit.framework.Assert;
 
 import org.easymock.EasyMock;
-import org.easymock.classextension.EasyClassMock;
 import org.junit.Test;
 
 /**
@@ -67,15 +66,15 @@ public class WildcardFragmentTest
     @Test
     public void testBuildRegex()
     {
-        PrintWriter mockPw = EasyClassMock.createMock(PrintWriter.class);
+        PrintWriter mockPw = EasyMock.createMock(PrintWriter.class);
         mockPw.print(".*"); //$NON-NLS-1$
         Set<String> usedNames = new HashSet<String>();
-        EasyClassMock.replay(mockPw);
+        EasyMock.replay(mockPw);
 
         WildcardFragment wc = new WildcardFragment();
         wc.buildRegex(mockPw, usedNames);
         Assert.assertEquals(0, usedNames.size());
-        EasyClassMock.verify(mockPw);
+        EasyMock.verify(mockPw);
     }
 
     /**
@@ -108,7 +107,7 @@ public class WildcardFragmentTest
         try
         {
             String message = "parsed"; //$NON-NLS-1$
-            Reader mockReader = EasyClassMock.createMock(Reader.class);
+            Reader mockReader = EasyMock.createMock(Reader.class);
             AbnfReader abnf = new AbnfReader(mockReader, "mock"); //$NON-NLS-1$
             EasyMock.expect(Integer.valueOf(abnf.read())).andReturn(Integer.valueOf('<'));
             for (int i = 0; i < message.length(); ++i)
@@ -116,10 +115,10 @@ public class WildcardFragmentTest
                 EasyMock.expect(Integer.valueOf(abnf.read())).andReturn(Integer.valueOf(message.charAt(i)));
             }
             EasyMock.expect(Integer.valueOf(abnf.read())).andReturn(Integer.valueOf('>'));
-            EasyClassMock.replay(mockReader);
+            EasyMock.replay(mockReader);
             WildcardFragment wc = WildcardFragment.parse(abnf);
             Assert.assertEquals('<' + message + '>', wc.toString());
-            EasyClassMock.verify(mockReader);
+            EasyMock.verify(mockReader);
         }
         catch (IOException ex)
         {
@@ -134,11 +133,11 @@ public class WildcardFragmentTest
     public void testParseEx()
     {
         String message = "cutoff"; //$NON-NLS-1$
-        AbnfReader abnf = EasyClassMock.createMock(AbnfReader.class);
+        AbnfReader abnf = EasyMock.createMock(AbnfReader.class);
         try
         {
             EasyMock.expect(Integer.valueOf(abnf.read())).andThrow(new EOFException());
-            EasyClassMock.replay(abnf);
+            EasyMock.replay(abnf);
 
             WildcardFragment wc = WildcardFragment.parse(abnf);
             Assert.assertEquals('<' + message + '>', wc.toString());
@@ -152,6 +151,6 @@ public class WildcardFragmentTest
         {
             Assert.fail("unexpected exception: " + ioex.toString()); //$NON-NLS-1$
         }
-        EasyClassMock.verify(abnf);
+        EasyMock.verify(abnf);
     }
 }

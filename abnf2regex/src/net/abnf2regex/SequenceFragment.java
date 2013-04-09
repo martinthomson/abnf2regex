@@ -9,11 +9,6 @@ import java.util.Set;
  */
 public class SequenceFragment extends GroupFragment
 {
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#append(net.abnf2regex.RuleFragment)
-     */
     @Override
     public boolean append(RuleFragment frag)
     {
@@ -44,19 +39,17 @@ public class SequenceFragment extends GroupFragment
         if (this.fragments.size() > 0)
         {
             RuleFragment last = this.fragments.getLast();
-            if (last.getOccurences().equals(frag.getOccurences()))
+            // can't append to a choice because choices are different
+            if (!(last instanceof ChoiceFragment) && last.getOccurences().equals(frag.getOccurences()))
             {
-                return last.append(frag);
+            	RuleFragment copy = (RuleFragment) frag.clone();
+            	copy.setOccurences(OccurenceRange.ONCE);
+				return last.append(copy);
             }
         }
         return false;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#buildAbnf(java.lang.StringBuilder)
-     */
     @Override
     protected StringBuilder buildAbnf(StringBuilder bld)
     {
@@ -73,11 +66,6 @@ public class SequenceFragment extends GroupFragment
         return bld;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#needsAbnfParens()
-     */
     @Override
     protected boolean needsAbnfParens()
     {
@@ -87,20 +75,12 @@ public class SequenceFragment extends GroupFragment
                                .isOnce());
     }
 
-    /* (non-Javadoc)
-     * @see net.abnf2regex.RuleFragment#needsRegexParens()
-     */
     @Override
     protected boolean needsRegexParens()
     {
         return (this.length() != 1) && super.needsRegexParens();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#buildRegex(java.lang.StringBuilder)
-     */
     @Override
     protected void buildRegex(PrintWriter pw, Set<String> usedNames) throws RuleResolutionException
     {

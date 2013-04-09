@@ -15,11 +15,6 @@ import java.util.Set;
  */
 public class ChoiceFragment extends GroupFragment
 {
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#append(net.abnf2regex.RuleFragment)
-     */
     @Override
     public boolean append(RuleFragment frag)
     {
