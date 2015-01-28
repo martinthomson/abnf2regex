@@ -4,14 +4,15 @@ Creates a regular expression from RFC 5234 ABNF.
 
 This is a java package, that can be build as an OSGi bundle.  Source is provided as an Eclipse project.  Test code is in a separate project that builds an OSGi fragment bundle, hosted by the first.  If you don't care for OSGi, that's OK, OSGi bundles are regular jar files.  The main jar file includes a Main-Class directive so that it can be run directly.
 
-You need easymock to run the tests: http://easymock.org/ 
-This needs objenesis http://objenesis.googlecode.com/svn/docs/index.html
-and cglib http://cglib.sourceforge.net/
+To run the tests you need:
+* easymock: http://easymock.org/ 
+* objenesis: http://objenesis.org/
+* cglib: http://cglib.sourceforge.net/
 
 I used the following:
-#       easymock-3.1.jar
-#       objenesis-1.3.jar
-#       cglib-nodep-2.2.3.jar
+#       easymock-3.3.1.jar
+#       objenesis-2.1.jar
+#       cglib-nodep-2.2.3.jar (version 3.1 doesn't work!)
 
  * TODO Complete test harnesses.
 
