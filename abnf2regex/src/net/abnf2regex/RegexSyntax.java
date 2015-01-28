@@ -1,7 +1,9 @@
 package net.abnf2regex;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This class embodies
@@ -115,6 +117,16 @@ public class RegexSyntax
             throw new RegexSyntaxNotFoundException("Syntax does not exist.", lcName);
         }
         RegexSyntax.current = RegexSyntax.syntaxes.get(lcName);
+    }
+
+    /**
+     * Learn what syntaxes are supported.
+     *
+     * @return a set of syntaxes that are supported
+     */
+    public static Set<String> getSyntaxNames()
+    {
+        return Collections.unmodifiableSet(RegexSyntax.syntaxes.keySet());
     }
 
     /**
@@ -248,33 +260,34 @@ public class RegexSyntax
     {
         switch (ch)
         {
-            // bad = .\?*+()|[]
-            // dodgy = -
-            case '.':
-            case '\\':
-            case '?':
-            case '*':
-            case '+':
-            case '(':
-            case ')':
-            case '|':
-            case '[':
-            case ']':
-            case '-':
-                return "\\" + (char) ch; //$NON-NLS-1$
-            case '\t':
-                return "\\t"; //$NON-NLS-1$
-            case '\r':
-                return "\\r"; //$NON-NLS-1$
-            case '\n':
-                return "\\n"; //$NON-NLS-1$
-            default:
-                return this.defaultCharacter(ch);
+        // bad = .\?*+()|[]
+        // dodgy = -
+        case '.':
+        case '\\':
+        case '?':
+        case '*':
+        case '+':
+        case '(':
+        case ')':
+        case '|':
+        case '[':
+        case ']':
+        case '-':
+            return "\\" + (char) ch; //$NON-NLS-1$
+        case '\t':
+            return "\\t"; //$NON-NLS-1$
+        case '\r':
+            return "\\r"; //$NON-NLS-1$
+        case '\n':
+            return "\\n"; //$NON-NLS-1$
+        default:
+            return this.defaultCharacter(ch);
         }
     }
 
     /**
-     * The base implementation of character calls this method once it has completed per-character processing.
+     * The base implementation of character calls this method once it has
+     * completed per-character processing.
      *
      * @param ch the code point for the character
      * @return a regular expression string for a single character
@@ -294,7 +307,8 @@ public class RegexSyntax
     }
 
     /**
-     * Produces a hexadecimal string with an even number of characters, padding with leading zeroes as necessary.
+     * Produces a hexadecimal string with an even number of characters, padding
+     * with leading zeroes as necessary.
      *
      * @param ch the unicode code point
      * @return a hexadecimal string
@@ -330,8 +344,9 @@ public class RegexSyntax
      *
      * @param cr the range
      * @param brackets whether to add brackets or not
-     * @return "\\d" (for [0-9] ranges) or the default range. Any class overriding this method must ensure returned
-     *         values less than three characters long do not require brackets.
+     * @return "\\d" (for [0-9] ranges) or the default range. Any class
+     *         overriding this method must ensure returned values less than
+     *         three characters long do not require brackets.
      */
     public String range(CharRange cr, boolean brackets)
     {
@@ -444,12 +459,12 @@ public class RegexSyntax
         {
             switch (ch)
             {
-                case '&':
-                    return "&amp;";
-                case '"':
-                    return "&quot;";
-                case '<':
-                    return "&lt;";
+            case '&':
+                return "&amp;";
+            case '"':
+                return "&quot;";
+            case '<':
+                return "&lt;";
             }
             return super.character(ch);
         }
@@ -485,17 +500,17 @@ public class RegexSyntax
             // Character quoting is rather simple for SED
             switch (ch)
             {
-                case '\n':
-                    return "\\n";
-                case '$':
-                case '*':
-                case '.':
-                case '[':
-                case '\\':
-                case '^':
-                    return "\\" + String.valueOf((char) ch);
-                default:
-                    return String.valueOf((char) ch);
+            case '\n':
+                return "\\n";
+            case '$':
+            case '*':
+            case '.':
+            case '[':
+            case '\\':
+            case '^':
+                return "\\" + String.valueOf((char) ch);
+            default:
+                return String.valueOf((char) ch);
             }
         }
     }
@@ -531,17 +546,17 @@ public class RegexSyntax
             // Character quoting is rather simple for SED
             switch (ch)
             {
-                case '\n':
-                    return "\\n";
-                case '$':
-                case '*':
-                case '.':
-                case '[':
-                case '\\':
-                case '^':
-                    return "\\" + String.valueOf((char) ch);
-                default:
-                    return String.valueOf((char) ch);
+            case '\n':
+                return "\\n";
+            case '$':
+            case '*':
+            case '.':
+            case '[':
+            case '\\':
+            case '^':
+                return "\\" + String.valueOf((char) ch);
+            default:
+                return String.valueOf((char) ch);
             }
         }
     }

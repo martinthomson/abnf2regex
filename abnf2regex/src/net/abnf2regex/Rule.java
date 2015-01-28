@@ -84,7 +84,7 @@ public class Rule
      * @param usedNames a set of rules that have already been called on this call stack.
      * @throws RuleResolutionException when {@link NamedFragment} instances are unresolved.
      */
-    protected void writeRegex(PrintWriter pw, Set<String> usedNames) throws RuleResolutionException
+    public void writeRegex(PrintWriter pw, Set<String> usedNames) throws RuleResolutionException
     {
         if (usedNames.contains(this.getName()))
         {

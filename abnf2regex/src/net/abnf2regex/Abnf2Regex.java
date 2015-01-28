@@ -7,23 +7,18 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-
 import java.net.URL;
-
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * A program that turns ABNF into regular expressions. Uses the ABNF syntax defined in <a
- * href="http://tools.ietf.org/html/rfc5234">RFC 5234</a>.
- *
- * TODO Improve test harnesses and test coverage.
- *
- * TODO Add options to allow capture parentheses to be used for certain patterns instead of the non-capturing groups
- * currently used.
- *
- * TODO Complete javadoc on all classses.
+ * A program that turns ABNF into regular expressions. Uses the ABNF syntax
+ * defined in <a href="http://tools.ietf.org/html/rfc5234">RFC 5234</a>. TODO
+ * Improve test harnesses and test coverage. TODO Add options to allow capture
+ * parentheses to be used for certain patterns instead of the non-capturing
+ * groups currently used. TODO Complete javadoc on all classses.
  *
  * @author mathomson
  */
@@ -42,17 +37,21 @@ public class Abnf2Regex
     public static void main(String[] args) throws IOException, AbnfParseException
     {
         RuleDictionary dict = new RuleDictionary();
-        String testRule = null;
+        String targetRule = null;
         String testString = null;
         int print = 1;
 
         while (args.length > 0 && args[0].charAt(0) == '-')
         {
-            if ((args.length >= 3) && args[0].equals("-t")) //$NON-NLS-1$
+            if ((args.length >= 2) && args[0].equals("-r")) //$NON-NLS-1$
             {
-                testRule = args[1];
-                testString = args[2];
-                args = Arrays.copyOfRange(args, 3, args.length);
+                targetRule = args[1];
+                args = Arrays.copyOfRange(args, 2, args.length);
+            }
+            else if ((args.length >= 2) && args[0].equals("-t")) //$NON-NLS-1$
+            {
+                testString = args[1];
+                args = Arrays.copyOfRange(args, 2, args.length);
                 print &= 2;
             }
             else if ((args.length >= 1) && args[0].equals("-p")) //$NON-NLS-1$
@@ -72,6 +71,20 @@ public class Abnf2Regex
                 }
                 args = Arrays.copyOfRange(args, 2, args.length);
             }
+            else
+            {
+                System.err.println("Usage: abnf2regex [-r <rule>] [-t <test>] [-p] [-s <syntax>] [file ...]");
+                System.err.println("\t-r <rule>\tSelect a specific rule");
+                System.err.println("\t-t <test>\tTest a string against a rule (requires -r)");
+                System.err.println("\t-p\t\tPrints the dictionary (without -r), or the rule (with -r)");
+                StringBuilder bld = new StringBuilder();
+                for (String name : RegexSyntax.getSyntaxNames())
+                {
+                    bld.append(',').append(name);
+                }
+                System.err.println("\t-s <syntax>\tSelect regex syntax [" + bld.substring(1) + "]");
+                return;
+            }
         }
 
         if (args.length == 0)
@@ -87,10 +100,39 @@ public class Abnf2Regex
 
         if (print != 0)
         {
-            dict.write(new PrintWriter(System.out));
+            PrintWriter output = new PrintWriter(System.out);
+            if (targetRule != null)
+            {
+                Rule rule = dict.getRule(targetRule);
+                Abnf2Regex.printRule(targetRule, rule, output);
+            }
+            else
+            {
+                dict.write(output);
+            }
+            output.flush();
         }
 
-        testRule(dict, testRule, testString);
+        Abnf2Regex.testRule(dict, targetRule, testString);
+    }
+
+    private static void printRule(String ruleName, Rule rule, PrintWriter output)
+    {
+        if (rule == null)
+        {
+            output.println("No such rule '" + ruleName + "'");
+            return;
+        }
+        try
+        {
+            output.print(ruleName);
+            output.print(": ");
+            rule.writeRegex(output, new HashSet<String>());
+        }
+        catch (RuleResolutionException e)
+        {
+            System.err.println("Error resolving rule: " + e);
+        }
     }
 
     /**
@@ -102,29 +144,30 @@ public class Abnf2Regex
      */
     private static void testRule(RuleDictionary dict, String testRule, String testString)
     {
-        if (testRule != null)
+        if (testRule == null || testString == null)
         {
-            try
-            {
-                RegexSyntax.setCurrent(RegexSyntax.SYNTAX_JAVA);
-                String regex = dict.ruleToRegex(testRule);
-                Pattern p = Pattern.compile(regex);
-                Matcher m = p.matcher(testString);
-                String matches = m.matches() ? "matches" : "does not match"; //$NON-NLS-1$ //$NON-NLS-2$
-                System.out.println("Rule \"" + testRule + "\" " + matches + ": " + testString); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-                Rule rule = dict.getRule(testRule);
-                System.out.println("Rule: " + rule.toAbnf()); //$NON-NLS-1$
-                System.out.println("Expanded: " + dict.expandRule(rule).toAbnf()); //$NON-NLS-1$
-                System.out.println("Regex: " + regex); //$NON-NLS-1$
-            }
-            catch (RuleResolutionException ex)
-            {
-                System.err.println("Error in rule '" + testRule + "' : " + ex.getMessage()); //$NON-NLS-1$//$NON-NLS-2$
-            }
-            catch (RegexSyntaxNotFoundException ex)
-            {
-                ex.printStackTrace();
-            }
+            return;
+        }
+        try
+        {
+            RegexSyntax.setCurrent(RegexSyntax.SYNTAX_JAVA);
+            String regex = dict.ruleToRegex(testRule);
+            Pattern p = Pattern.compile(regex);
+            Matcher m = p.matcher(testString);
+            String matches = m.matches() ? "matches" : "does not match"; //$NON-NLS-1$ //$NON-NLS-2$
+            System.out.println("Rule \"" + testRule + "\" " + matches + ": " + testString); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+            Rule rule = dict.getRule(testRule);
+            System.out.println("Rule: " + rule.toAbnf()); //$NON-NLS-1$
+            System.out.println("Expanded: " + dict.expandRule(rule).toAbnf()); //$NON-NLS-1$
+            System.out.println("Regex: " + regex); //$NON-NLS-1$
+        }
+        catch (RuleResolutionException ex)
+        {
+            System.err.println("Error in rule '" + testRule + "' : " + ex.getMessage()); //$NON-NLS-1$//$NON-NLS-2$
+        }
+        catch (RegexSyntaxNotFoundException ex)
+        {
+            ex.printStackTrace();
         }
     }
 
@@ -152,7 +195,8 @@ public class Abnf2Regex
             else
             {
                 File f = new File(fname);
-                if (! f.exists()){
+                if (!f.exists())
+                {
                     throw new FileNotFoundException(f.getName());
                 }
 
