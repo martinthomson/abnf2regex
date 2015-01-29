@@ -4,15 +4,19 @@ import java.io.PrintWriter;
 import java.util.Set;
 
 /**
- * A named fragment references another rule by name. Initially, instances of this class are unresolved and any attempt
- * to generate a regular expression throw a {@link RuleResolutionException}. The rule must be resolved by calling
+ * A named fragment references another rule by name. Initially, instances of
+ * this class are unresolved and any attempt to generate a regular expression
+ * throw a {@link RuleResolutionException}. The rule must be resolved by calling
  * {@link #resolve(Rule)}.
  */
 public class NamedFragment extends RuleFragment
 {
     /** The name of the referenced rule. */
     private final String name;
-    /** The actual value of the referenced rule, or null if this rule is unresolved. */
+    /**
+     * The actual value of the referenced rule, or null if this rule is
+     * unresolved.
+     */
     private Rule resolved;
 
     /**
@@ -36,8 +40,8 @@ public class NamedFragment extends RuleFragment
     }
 
     /**
-     * Resolve this fragment, by assigning a rule to it. Note that the rule name is not checked for consistency, that is
-     * the caller's responsibility.
+     * Resolve this fragment, by assigning a rule to it. Note that the rule name
+     * is not checked for consistency, that is the caller's responsibility.
      *
      * @param r the rule that this fragment resolves to.
      */
@@ -46,11 +50,16 @@ public class NamedFragment extends RuleFragment
         this.resolved = r;
     }
 
-    /*
-     * (non-Javadoc)
+    /**
+     * The resolved rule, if any.
      *
-     * @see net.abnf2regex.RuleFragment#append(net.abnf2regex.RuleFragment)
+     * @return a rule
      */
+    public Rule getResolvedRule()
+    {
+        return this.resolved;
+    }
+
     @Override
     public boolean append(RuleFragment frag)
     {
@@ -66,22 +75,12 @@ public class NamedFragment extends RuleFragment
         return false;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#buildAbnf(java.lang.StringBuilder)
-     */
     @Override
-    protected StringBuilder buildAbnf(StringBuilder bld)
+    protected StringBuilder buildAbnf(StringBuilder bld, Set<String> usedNames)
     {
         return bld.append(this.name);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#buildRegex(java.lang.StringBuilder)
-     */
     @Override
     protected void buildRegex(PrintWriter pw, Set<String> usedNames) throws RuleResolutionException
     {
@@ -92,22 +91,12 @@ public class NamedFragment extends RuleFragment
         this.resolved.writeRegex(pw, usedNames);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#needsAbnfParens()
-     */
     @Override
     protected boolean needsAbnfParens()
     {
         return false;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#clone()
-     */
     @Override
     public Object clone()
     {

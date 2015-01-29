@@ -5,11 +5,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.HashSet;
-import java.util.Set;
-
-import junit.framework.Assert;
 
 import org.easymock.EasyMock;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -19,18 +17,21 @@ public class WildcardFragmentTest
 {
 
     /**
-     * Test method for {@link net.abnf2regex.WildcardFragment#setOccurences(net.abnf2regex.OccurenceRange)}.
+     * Test method for
+     * {@link net.abnf2regex.WildcardFragment#setOccurences(net.abnf2regex.OccurrenceRange)}
+     * .
      */
     @Test
     public void testSetOccurences()
     {
         WildcardFragment wc = new WildcardFragment("text"); //$NON-NLS-1$
-        wc.setOccurences(new OccurenceRange(1, -1)); // should do nothing
-        Assert.assertEquals(OccurenceRange.ONCE, wc.getOccurences());
+        wc.setOccurences(new OccurrenceRange(1, -1)); // should do nothing
+        Assert.assertEquals(OccurrenceRange.ONCE, wc.getOccurences());
     }
 
     /**
-     * Test method for {@link net.abnf2regex.WildcardFragment#needsAbnfParens()}.
+     * Test method for {@link net.abnf2regex.WildcardFragment#needsAbnfParens()}
+     * .
      */
     @Test
     public void testNeedsAbnfParens()
@@ -39,7 +40,9 @@ public class WildcardFragmentTest
     }
 
     /**
-     * Test method for {@link net.abnf2regex.WildcardFragment#buildAbnf(java.lang.StringBuilder)}.
+     * Test method for
+     * {@link net.abnf2regex.WildcardFragment#buildAbnf(java.lang.StringBuilder)}
+     * .
      */
     @Test
     public void testBuildAbnf()
@@ -47,12 +50,13 @@ public class WildcardFragmentTest
         String message = "string"; //$NON-NLS-1$
         WildcardFragment wc = new WildcardFragment(message);
         StringBuilder bld = new StringBuilder();
-        Assert.assertSame(bld, wc.buildAbnf(bld));
+        Assert.assertSame(bld, wc.buildAbnf(bld, new HashSet<String>()));
         Assert.assertEquals('<' + message + '>', bld.toString());
     }
 
     /**
-     * Test method for {@link net.abnf2regex.WildcardFragment#needsRegexParens()}.
+     * Test method for
+     * {@link net.abnf2regex.WildcardFragment#needsRegexParens()}.
      */
     @Test
     public void testNeedsRegexParens()
@@ -61,24 +65,28 @@ public class WildcardFragmentTest
     }
 
     /**
-     * Test method for {@link net.abnf2regex.WildcardFragment#buildRegex(java.io.PrintWriter, java.util.Set)}.
+     * Test method for
+     * {@link net.abnf2regex.WildcardFragment#buildRegex(java.io.PrintWriter, java.util.Set)}
+     * .
      */
     @Test
     public void testBuildRegex()
     {
         PrintWriter mockPw = EasyMock.createMock(PrintWriter.class);
         mockPw.print(".*"); //$NON-NLS-1$
-        Set<String> usedNames = new HashSet<String>();
         EasyMock.replay(mockPw);
 
         WildcardFragment wc = new WildcardFragment();
-        wc.buildRegex(mockPw, usedNames);
-        Assert.assertEquals(0, usedNames.size());
+        HashSet<String> set = new HashSet<String>();
+        wc.buildRegex(mockPw, set);
+        Assert.assertEquals(0, set.size());
         EasyMock.verify(mockPw);
     }
 
     /**
-     * Test method for {@link net.abnf2regex.WildcardFragment#append(net.abnf2regex.RuleFragment)}.
+     * Test method for
+     * {@link net.abnf2regex.WildcardFragment#append(net.abnf2regex.RuleFragment)}
+     * .
      */
     @Test
     public void testAppend()
@@ -95,11 +103,13 @@ public class WildcardFragmentTest
         WildcardFragment wc = new WildcardFragment("cloning"); //$NON-NLS-1$
         Object clone = wc.clone();
         Assert.assertTrue(clone instanceof WildcardFragment);
-        Assert.assertEquals(clone.toString(), wc.toString()); // abnf being equal is enough
+        Assert.assertEquals(clone.toString(), wc.toString()); // abnf being
+                                                              // equal is enough
     }
 
     /**
-     * Test method for {@link net.abnf2regex.WildcardFragment#parse(net.abnf2regex.AbnfReader)}.
+     * Test method for
+     * {@link net.abnf2regex.WildcardFragment#parse(net.abnf2regex.AbnfReader)}.
      */
     @Test
     public void testParse()
@@ -127,7 +137,9 @@ public class WildcardFragmentTest
     }
 
     /**
-     * Test method for {@link net.abnf2regex.WildcardFragment#parse(net.abnf2regex.AbnfReader)} with exception.
+     * Test method for
+     * {@link net.abnf2regex.WildcardFragment#parse(net.abnf2regex.AbnfReader)}
+     * with exception.
      */
     @Test
     public void testParseEx()

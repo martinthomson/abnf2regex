@@ -32,11 +32,13 @@ public class WildcardFragment extends RuleFragment
     }
 
     @Override
-    public void setOccurences(OccurenceRange r)
+    public void setOccurences(OccurrenceRange r)
     {
-        // A wildcard has no need of repetitions. This absorbs any attempt to set these. For instance, if an enclosing
-        // sequence with non-unitary repetitions is simplified, this will negate the repetitions.
-        super.setOccurences(OccurenceRange.ONCE);
+        // A wildcard has no need of repetitions. This absorbs any attempt to
+        // set these. For instance, if an enclosing
+        // sequence with non-unitary repetitions is simplified, this will negate
+        // the repetitions.
+        super.setOccurences(OccurrenceRange.ONCE);
     }
 
     /*
@@ -68,7 +70,7 @@ public class WildcardFragment extends RuleFragment
     }
 
     @Override
-    protected StringBuilder buildAbnf(StringBuilder bld)
+    protected StringBuilder buildAbnf(StringBuilder bld, Set<String> usedNames)
     {
         return bld.append('<').append(this.text).append('>');
     }
@@ -77,14 +79,15 @@ public class WildcardFragment extends RuleFragment
     protected void buildRegex(PrintWriter pw, Set<String> usedNames)
     {
         RegexSyntax syntax = RegexSyntax.getCurrent();
-        pw.print(syntax.getWildcard() +  syntax.getOccurenceAny());
+        pw.print(syntax.getWildcard() + syntax.getOccurenceAny());
     }
 
     /**
      * Read this fragment from ABNF
      *
      * @param abnf the reader
-     * @throws IOException on IO error, including maybe {@link java.io.EOFException}
+     * @throws IOException on IO error, including maybe
+     *             {@link java.io.EOFException}
      */
     public static WildcardFragment parse(AbnfReader abnf) throws IOException
     {

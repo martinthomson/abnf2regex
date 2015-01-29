@@ -24,6 +24,7 @@ public class RegexSyntaxNotFoundException extends Exception
 
     /**
      * Get the name of the syntax that was sought.
+     *
      * @return the name of the syntax that couldn't be found
      */
     public String getSyntaxName()

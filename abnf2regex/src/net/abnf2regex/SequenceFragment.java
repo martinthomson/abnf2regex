@@ -5,7 +5,8 @@ import java.util.ArrayDeque;
 import java.util.Set;
 
 /**
- * A {@link GroupFragment} that contains a sequence of fragments - the most basic building block of ABNF.
+ * A {@link GroupFragment} that contains a sequence of fragments - the most
+ * basic building block of ABNF.
  */
 public class SequenceFragment extends GroupFragment
 {
@@ -28,8 +29,8 @@ public class SequenceFragment extends GroupFragment
     }
 
     /**
-     * Merge the given fragment with the last fragment. The fragment is appended to the last instance if they are both
-     * of the same type.
+     * Merge the given fragment with the last fragment. The fragment is appended
+     * to the last instance if they are both of the same type.
      *
      * @param frag the fragment to append.
      * @return true iff the merge was successful
@@ -42,16 +43,16 @@ public class SequenceFragment extends GroupFragment
             // can't append to a choice because choices are different
             if (!(last instanceof ChoiceFragment) && last.getOccurences().equals(frag.getOccurences()))
             {
-            	RuleFragment copy = (RuleFragment) frag.clone();
-            	copy.setOccurences(OccurenceRange.ONCE);
-				return last.append(copy);
+                RuleFragment copy = (RuleFragment) frag.clone();
+                copy.setOccurences(OccurrenceRange.ONCE);
+                return last.append(copy);
             }
         }
         return false;
     }
 
     @Override
-    protected StringBuilder buildAbnf(StringBuilder bld)
+    protected StringBuilder buildAbnf(StringBuilder bld, Set<String> usedNames)
     {
         boolean started = false;
         for (RuleFragment frag : this.fragments)
@@ -61,7 +62,7 @@ public class SequenceFragment extends GroupFragment
                 bld.append(' ');
             }
             started = true;
-            bld.append(frag.toAbnf());
+            bld.append(frag.toAbnf(usedNames));
         }
         return bld;
     }
@@ -69,10 +70,11 @@ public class SequenceFragment extends GroupFragment
     @Override
     protected boolean needsAbnfParens()
     {
-        // if there is more than one, or if the one has a different number of occurences to this
-        return (this.length() > 1) ||
-               (this.length() == 1 && !this.getOccurences().isOnce() && !this.fragments.peekFirst().getOccurences()
-                               .isOnce());
+        // if there is more than one, or if the one has a different number of
+        // Occurrences to this
+        return (this.length() > 1)
+                || (this.length() == 1 && !this.getOccurences().isOnce() && !this.fragments.peekFirst().getOccurences()
+                        .isOnce());
     }
 
     @Override
@@ -91,7 +93,8 @@ public class SequenceFragment extends GroupFragment
     }
 
     /**
-     * Replaces all of the fragments from this with all the fragments in 'last'. Resets last to be empty.
+     * Replaces all of the fragments from this with all the fragments in 'last'.
+     * Resets last to be empty.
      *
      * @param extractFrom the sequence to extract all fragments from
      */

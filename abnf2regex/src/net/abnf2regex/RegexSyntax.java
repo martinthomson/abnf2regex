@@ -13,6 +13,8 @@ public class RegexSyntax
 {
     /** The name of the java syntax */
     public static final String SYNTAX_JAVA = "java";
+    /** The name of the javascript syntax */
+    public static final String SYNTAX_JAVASCRIPT = "javascript";
     /** The name of the XML Schema syntax */
     public static final String SYNTAX_XMLSCHEMA = "xmlschema";
     /** The name of the XML Schema (ascii) syntax */
@@ -26,13 +28,15 @@ public class RegexSyntax
     /** The name of the Perl syntax */
     public static final String SYNTAX_PERL = "perl";
     /** The name of the syntax */
-    private final String name;
+    private String name;
     /** The wildcard character */
     private String wildcard = ".";
     /** the start of a grouping (e.g., "(?:") */
     private String groupingStart;
     /** the end of a grouping (e.g., ")") */
     private String groupingEnd;
+    /** whether PCRE named groupings are supported */
+    private boolean namedGroupings = false;
     /** The choice separator */
     private String choice = "|";
     /** The suffix used for any number of repetitions of a particle */
@@ -69,20 +73,22 @@ public class RegexSyntax
 
     static
     {
-        RegexSyntax java1 = new JavaRegexSyntax();
-        RegexSyntax java = java1;
+        RegexSyntax java = new JavaRegexSyntax();
         RegexSyntax.current = java;
-        RegexSyntax.syntaxes.put(java.getName(), java);
-        RegexSyntax xmlschema = new XmlSchemaRegexSyntax(false);
-        RegexSyntax.syntaxes.put(xmlschema.getName(), xmlschema);
-        RegexSyntax xmlschemaascii = new XmlSchemaRegexSyntax(true);
-        RegexSyntax.syntaxes.put(xmlschemaascii.getName(), xmlschemaascii);
+        RegexSyntax.registerSyntax(java);
+        RegexSyntax.registerSyntax(new JavaScriptRegexSyntax());
+        RegexSyntax.registerSyntax(new XmlSchemaRegexSyntax(false));
+        RegexSyntax.registerSyntax(new XmlSchemaRegexSyntax(true));
         RegexSyntax posix = new PosixRegexSyntax();
-        RegexSyntax.syntaxes.put(posix.getName(), posix);
+        RegexSyntax.registerSyntax(posix);
         RegexSyntax.syntaxes.put(RegexSyntax.SYNTAX_GREP, posix);
         RegexSyntax.syntaxes.put(RegexSyntax.SYNTAX_SED, posix);
-        RegexSyntax perl = new PerlRegexSyntax();
-        RegexSyntax.syntaxes.put(perl.getName(), perl);
+        RegexSyntax.registerSyntax(new PerlRegexSyntax());
+    }
+
+    private static void registerSyntax(RegexSyntax syntax)
+    {
+        RegexSyntax.syntaxes.put(syntax.getName(), syntax);
     }
 
     /**
@@ -132,11 +138,13 @@ public class RegexSyntax
     /**
      * Set the grouping values
      *
+     * @param named whether named groupings are supported
      * @param start the start of a grouping (e.g., "(?:")
      * @param end the end of a grouping (")")
      */
-    protected void setGrouping(String start, String end)
+    protected void setGrouping(boolean named, String start, String end)
     {
+        this.namedGroupings = named;
         this.groupingStart = start;
         this.groupingEnd = end;
     }
@@ -149,6 +157,16 @@ public class RegexSyntax
     public String getGroupingStart()
     {
         return this.groupingStart;
+    }
+
+    /**
+     * Get whether named groupings are supported.
+     *
+     * @return true if supported
+     */
+    public boolean supportsNamedGroupings()
+    {
+        return this.namedGroupings;
     }
 
     /**
@@ -424,7 +442,27 @@ public class RegexSyntax
         JavaRegexSyntax()
         {
             super(RegexSyntax.SYNTAX_JAVA);
-            this.setGrouping("(?:", ")");
+            this.setGrouping(true, "(?:", ")");
+        }
+
+        @Override
+        protected String defaultCharacter(int ch)
+        {
+            if (Character.charCount(ch) == 2)
+            {
+                char[] chars = Character.toChars(ch);
+                return "\\u" + RegexSyntax.hexChar(chars[0]) + "\\u" + RegexSyntax.hexChar(chars[1]);
+            }
+            return super.defaultCharacter(ch);
+        }
+    }
+
+    private static final class JavaScriptRegexSyntax extends RegexSyntax
+    {
+        JavaScriptRegexSyntax()
+        {
+            super(RegexSyntax.SYNTAX_JAVASCRIPT);
+            this.setGrouping(false, "(?:", ")");
         }
 
         @Override
@@ -451,7 +489,7 @@ public class RegexSyntax
         {
             super(_ascii ? RegexSyntax.SYNTAX_XMLSCHEMA_ASCII : RegexSyntax.SYNTAX_XMLSCHEMA);
             this.ascii = _ascii;
-            this.setGrouping("(", ")");
+            this.setGrouping(false, "(", ")");
         }
 
         @Override
@@ -488,7 +526,7 @@ public class RegexSyntax
         PosixRegexSyntax()
         {
             super(RegexSyntax.SYNTAX_POSIX);
-            this.setGrouping("\\(", "\\)");
+            this.setGrouping(false, "\\(", "\\)");
             this.setChoiceSeparator("\\|");
             this.setOccurences("\\*", "\\?", "\\+", "\\{", "\\}");
             this.setSpecialRanges(false);
@@ -523,6 +561,7 @@ public class RegexSyntax
         PerlRegexSyntax()
         {
             super(RegexSyntax.SYNTAX_PERL);
+            this.setGrouping(true, this.getGroupingStart(), this.getGroupingEnd());
         }
 
         @Override

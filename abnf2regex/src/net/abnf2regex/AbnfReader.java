@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.io.Reader;
 
 /**
- * A class that adds a few helpful functions to the standard reader class, such as the ability to peek ahead at the next
- * character.
+ * A class that adds a few helpful functions to the standard reader class, such
+ * as the ability to peek ahead at the next character.
  */
 public class AbnfReader extends FilterReader
 {
@@ -103,14 +103,15 @@ public class AbnfReader extends FilterReader
         }
         else if (c != '\n')
         {
-            this.column ++;
+            this.column++;
         }
         this.lastEof = c;
         return c;
     }
 
     /**
-     * Determine whether the end of file has arrived. It does this by {@link #peek()}ing.
+     * Determine whether the end of file has arrived. It does this by
+     * {@link #peek()}ing.
      *
      * @return true if there is no more content in the file.
      * @throws IOException if the read fails
@@ -121,7 +122,8 @@ public class AbnfReader extends FilterReader
     }
 
     /**
-     * Consumes input as long as that input is whitespace and not and end-of-line character.
+     * Consumes input as long as that input is whitespace and not and
+     * end-of-line character.
      *
      * @return the amount of whitespace consumed.
      * @throws IOException if a read fails
@@ -129,7 +131,8 @@ public class AbnfReader extends FilterReader
      */
     public int gobbleWhitespace() throws IOException
     {
-        // prime this.peeked for the looping part, which uses none of the facilities provided by this class and
+        // prime this.peeked for the looping part, which uses none of the
+        // facilities provided by this class and
         // maintains this.peeked for itself
         this.peek();
         int ws = 0;
@@ -142,7 +145,8 @@ public class AbnfReader extends FilterReader
     }
 
     /**
-     * Consumes input up to the next line or the end of the file. Supports "\n", "\r", and "\r\n" end-of-line.
+     * Consumes input up to the next line or the end of the file. Supports "\n",
+     * "\r", and "\r\n" end-of-line.
      *
      * @throws IOException if a read fails
      */
@@ -165,7 +169,8 @@ public class AbnfReader extends FilterReader
     /**
      * Parses out a name string, composed of letters, digits and '-' or '_'.
      *
-     * @return The name string, which might be empty if no characters of the desired type were present.
+     * @return The name string, which might be empty if no characters of the
+     *         desired type were present.
      * @throws IOException if a read fails.
      */
     public String parseName() throws IOException
@@ -179,7 +184,8 @@ public class AbnfReader extends FilterReader
     }
 
     /**
-     * Parses out a positive integer. Consumes digits until there are no more, so integer overflow is possible.
+     * Parses out a positive integer. Consumes digits until there are no more,
+     * so integer overflow is possible.
      *
      * @param radix the radix of the number.
      * @return The number, 0 if there were no digits.

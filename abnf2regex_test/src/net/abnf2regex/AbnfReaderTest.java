@@ -3,9 +3,8 @@ package net.abnf2regex;
 import java.io.IOException;
 import java.io.Reader;
 
-import junit.framework.Assert;
-
 import org.easymock.EasyMock;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,12 +29,13 @@ public class AbnfReaderTest
     }
 
     /**
-     * Test method for {@link net.abnf2regex.AbnfReader#AbnfReader(java.io.Reader, String)}.
+     * Test method for
+     * {@link net.abnf2regex.AbnfReader#AbnfReader(java.io.Reader, String)}.
      */
     @Test
     public void testInstantiation()
     {
-    	Assert.assertNotNull(this.abnf);
+        Assert.assertNotNull(this.abnf);
     }
 
     /**
@@ -160,7 +160,8 @@ public class AbnfReaderTest
         }
         EasyMock.replay(this.mockReader);
         Assert.assertEquals(input.length() - 1, this.abnf.gobbleWhitespace());
-        this.abnf.read(); // skip the non-whitespace character in preparation for the next case
+        this.abnf.read(); // skip the non-whitespace character in preparation
+                          // for the next case
         EasyMock.verify(this.mockReader);
         EasyMock.reset(this.mockReader);
     }
@@ -189,14 +190,17 @@ public class AbnfReaderTest
     }
 
     /**
-     * Test that {@link net.abnf2regex.AbnfReader#findNextLine()} can find the next line for '\n', '\r' and "\r\n".
+     * Test that {@link net.abnf2regex.AbnfReader#findNextLine()} can find the
+     * next line for '\n', '\r' and "\r\n".
      *
-     * @param input the string to test, the last character must be the first character after a newline
+     * @param input the string to test, the last character must be the first
+     *            character after a newline
      * @throws IOException never, really
      */
     private void reallyTestFindNextLine(String input) throws IOException
     {
-        // should return the first character at the next line (the last character)
+        // should return the first character at the next line (the last
+        // character)
         for (int i = 0; i < input.length(); ++i)
         {
             EasyMock.expect(Integer.valueOf(this.mockReader.read())).andReturn(Integer.valueOf(input.charAt(i)));
@@ -210,7 +214,8 @@ public class AbnfReaderTest
     }
 
     /**
-     * Test that {@link net.abnf2regex.AbnfReader#findNextLine()} doesn't barf when it hits the end of file.
+     * Test that {@link net.abnf2regex.AbnfReader#findNextLine()} doesn't barf
+     * when it hits the end of file.
      *
      * @param ch the character that comes before the eof character
      * @throws IOException never, really
@@ -249,13 +254,16 @@ public class AbnfReaderTest
     /**
      * Test that {@link net.abnf2regex.AbnfReader#parseName()} works.
      *
-     * @param input the string to test, the last character must be the first character after a newline
-     * @param nextChar the character encounted after the name (not a letter or digit and not '-' or '_')
+     * @param input the string to test, the last character must be the first
+     *            character after a newline
+     * @param nextChar the character encounted after the name (not a letter or
+     *            digit and not '-' or '_')
      * @throws IOException never, really
      */
     private void reallyTestParseName(String input, int nextChar) throws IOException
     {
-        // should return the first character at the next line (the last character)
+        // should return the first character at the next line (the last
+        // character)
         for (int i = 0; i < input.length(); ++i)
         {
             EasyMock.expect(Integer.valueOf(this.mockReader.read())).andReturn(Integer.valueOf(input.charAt(i)));
@@ -276,7 +284,7 @@ public class AbnfReaderTest
     {
         try
         {
-            this.reallyTestParseNumber(12, 10,' ');
+            this.reallyTestParseNumber(12, 10, ' ');
             Assert.assertEquals(4, this.abnf.getColumn());
             this.reallyTestParseNumber(3, 4, '=');
             Assert.assertEquals(6, this.abnf.getColumn());
@@ -303,14 +311,17 @@ public class AbnfReaderTest
     /**
      * Test that {@link net.abnf2regex.AbnfReader#parseNumber()} works.
      *
-     * @param number the number to test, the last character must be the first character after a newline
-     * @param nextChar the character encounted after the name (not a letter or digit and not '-' or '_')
+     * @param number the number to test, the last character must be the first
+     *            character after a newline
+     * @param nextChar the character encounted after the name (not a letter or
+     *            digit and not '-' or '_')
      * @throws IOException never, really
      */
     private void reallyTestParseNumber(int number, int radix, int nextChar) throws IOException
     {
         String input = Integer.toString(number, radix);
-        // should return the first character at the next line (the last character)
+        // should return the first character at the next line (the last
+        // character)
         for (int i = 0; i < input.length(); ++i)
         {
             EasyMock.expect(Integer.valueOf(this.mockReader.read())).andReturn(Integer.valueOf(input.charAt(i)));
@@ -322,6 +333,5 @@ public class AbnfReaderTest
         EasyMock.verify(this.mockReader);
         EasyMock.reset(this.mockReader);
     }
-
 
 }

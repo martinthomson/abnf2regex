@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A fragment that contains alternatives. In ABNF these choices are separated by '/' characters.
+ * A fragment that contains alternatives. In ABNF these choices are separated by
+ * '/' characters.
  */
 public class ChoiceFragment extends GroupFragment
 {
@@ -39,13 +40,8 @@ public class ChoiceFragment extends GroupFragment
         return true;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#buildAbnf(java.lang.StringBuilder)
-     */
     @Override
-    protected StringBuilder buildAbnf(StringBuilder bld)
+    protected StringBuilder buildAbnf(StringBuilder bld, Set<String> usedNames)
     {
         boolean first = true;
         for (RuleFragment rf : this.fragments)
@@ -58,7 +54,7 @@ public class ChoiceFragment extends GroupFragment
             {
                 first = false;
             }
-            bld.append(rf.toAbnf());
+            bld.append(rf.toAbnf(usedNames));
         }
         return bld;
     }
@@ -74,11 +70,6 @@ public class ChoiceFragment extends GroupFragment
         return true;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#buildRegex(java.lang.StringBuilder)
-     */
     @Override
     protected void buildRegex(PrintWriter pw, Set<String> usedNames) throws RuleResolutionException
     {
@@ -103,9 +94,11 @@ public class ChoiceFragment extends GroupFragment
     }
 
     /**
-     * Get a string for the single character fragments in the choice, so we can turn it into a [list]
+     * Get a string for the single character fragments in the choice, so we can
+     * turn it into a [list]
      *
-     * @param copy a copy of the fragments in this choice, which can (and will) have any used elements removed.
+     * @param copy a copy of the fragments in this choice, which can (and will)
+     *            have any used elements removed.
      */
     private String getSingleCharacterList(Collection<RuleFragment> copy)
     {
@@ -133,9 +126,8 @@ public class ChoiceFragment extends GroupFragment
 
     /**
      * Extract all fragments from the list that contain single character rules.
-     *
-     * TODO: this method doesn't properly handle java syntax regular expressions that contain characters that require
-     * two <code>char</code> entries.
+     * TODO: this method doesn't properly handle java syntax regular expressions
+     * that contain characters that require two <code>char</code> entries.
      *
      * @param copy a copy, from which single character rules are extracted.
      * @return a collection of single characters.
@@ -231,7 +223,8 @@ public class ChoiceFragment extends GroupFragment
     @Override
     protected boolean needsRegexParens()
     {
-        // Note: choices never have a length of 1 after simplification, so checking for that doesn't make sense.
+        // Note: choices never have a length of 1 after simplification, so
+        // checking for that doesn't make sense.
 
         for (RuleFragment rf : this.fragments)
         {

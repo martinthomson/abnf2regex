@@ -15,10 +15,10 @@ import java.util.regex.Pattern;
 
 /**
  * A program that turns ABNF into regular expressions. Uses the ABNF syntax
- * defined in <a href="http://tools.ietf.org/html/rfc5234">RFC 5234</a>. TODO
- * Improve test harnesses and test coverage. TODO Add options to allow capture
- * parentheses to be used for certain patterns instead of the non-capturing
- * groups currently used. TODO Complete javadoc on all classses.
+ * defined in <a href="http://tools.ietf.org/html/rfc5234">RFC 5234</a>. 
+ * 
+ * TODO Improve test harnesses and test coverage.
+ * TODO Complete javadoc on all classses.
  *
  * @author mathomson
  */
@@ -157,8 +157,8 @@ public class Abnf2Regex
             String matches = m.matches() ? "matches" : "does not match"; //$NON-NLS-1$ //$NON-NLS-2$
             System.out.println("Rule \"" + testRule + "\" " + matches + ": " + testString); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
             Rule rule = dict.getRule(testRule);
-            System.out.println("Rule: " + rule.toAbnf()); //$NON-NLS-1$
-            System.out.println("Expanded: " + dict.expandRule(rule).toAbnf()); //$NON-NLS-1$
+            System.out.println("Rule: " + rule.toAbnf(new HashSet<String>())); //$NON-NLS-1$
+            System.out.println("Expanded: " + dict.expandRule(rule).toAbnf(new HashSet<String>())); //$NON-NLS-1$
             System.out.println("Regex: " + regex); //$NON-NLS-1$
         }
         catch (RuleResolutionException ex)

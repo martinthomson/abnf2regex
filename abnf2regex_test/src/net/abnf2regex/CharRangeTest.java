@@ -1,7 +1,6 @@
 package net.abnf2regex;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -28,7 +27,9 @@ public class CharRangeTest
     }
 
     /**
-     * Test method for {@link net.abnf2regex.CharRange#buildAbnf(java.lang.StringBuilder, boolean)}.
+     * Test method for
+     * {@link net.abnf2regex.CharRange#buildAbnf(java.lang.StringBuilder, boolean)}
+     * .
      */
     @Test
     public void testToAbnf()
@@ -92,7 +93,10 @@ public class CharRangeTest
         Assert.assertFalse(cr.equals("foo")); //$NON-NLS-1$
     }
 
-    /** Not only does this check for equality, it checks that the contract for equals and hashCode is met. */
+    /**
+     * Not only does this check for equality, it checks that the contract for
+     * equals and hashCode is met.
+     */
     private void checkEquals(Object a, Object b)
     {
         Assert.assertEquals(a, b);

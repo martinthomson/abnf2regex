@@ -1,7 +1,6 @@
 package net.abnf2regex;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,7 +35,8 @@ public class TestRegexSyntax
     @Test
     public void testSingleCharacter()
     {
-        char[] dodgy = new char[] { '.', '\\', '?', '*', '+', '(', ')', '|', '[', ']', '-' };
+        char[] dodgy = new char[]
+        { '.', '\\', '?', '*', '+', '(', ')', '|', '[', ']', '-' };
         for (char d : dodgy)
         {
             Assert.assertEquals("\\" + d, syntax.character(d));

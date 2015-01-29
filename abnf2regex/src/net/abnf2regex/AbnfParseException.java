@@ -43,11 +43,6 @@ public class AbnfParseException extends Exception
         this.column = abnf.getColumn();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Throwable#getMessage()
-     */
     @Override
     public String getMessage()
     {

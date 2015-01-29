@@ -26,7 +26,10 @@ public class RuleDictionary
     /** The set of rules in this dictionary. */
     private final Map<String, Rule> rules = new LinkedHashMap<String, Rule>();
 
-    /** Contains all the recursing rules that we have already warned the user about */
+    /**
+     * Contains all the recursing rules that we have already warned the user
+     * about
+     */
     private static Set<String> warned = new HashSet<String>();
 
     static
@@ -39,6 +42,10 @@ public class RuleDictionary
                 InputStream coreRules = RuleDictionary.class.getResourceAsStream(RuleDictionary.CORE_RULES_FILE);
                 RuleDictionary.predefinedRules.parse(coreRules, RuleDictionary.CORE_RULES_FILE);
                 RuleDictionary.predefinedRules.resolve();
+                for (Rule r : RuleDictionary.predefinedRules.rules.values())
+                {
+                    r.setInlineRule(true);
+                }
             }
             catch (IOException ex)
             {
@@ -52,8 +59,8 @@ public class RuleDictionary
     }
 
     /**
-     * Adds a rule to the dictionary. Overwrites any preexisting rule by the same name. Name comparisons are
-     * case-insensitive.
+     * Adds a rule to the dictionary. Overwrites any preexisting rule by the
+     * same name. Name comparisons are case-insensitive.
      *
      * @param rule the rule to add
      */
@@ -63,7 +70,8 @@ public class RuleDictionary
     }
 
     /**
-     * Resolve all {@link NamedFragment} instances in all rules in the dictionary.
+     * Resolve all {@link NamedFragment} instances in all rules in the
+     * dictionary.
      *
      * @return true if all rules were resolved.
      */
@@ -98,13 +106,18 @@ public class RuleDictionary
     }
 
     /**
-     * Creates a copy of a rule that has all referenced rules expanded. Any instances of recursion are terminated by
-     * wildcard fragments.
+     * Creates a copy of a rule that has all referenced rules expanded. Any
+     * instances of recursion are terminated by wildcard fragments.
      *
      * @param br the original rule.
      * @return a copy of the original rule that is completely resolved.
      */
     public Rule expandRule(Rule br)
+    {
+        return expandRule(br, new HashSet<String>());
+    }
+
+    private Rule expandRule(Rule br, Set<String> usedNames)
     {
         Rule copy = new Rule(br.getName());
 
@@ -112,7 +125,6 @@ public class RuleDictionary
         this.resolveRule(mainFrag);
         GroupFragment copyFrag = copy.getMainFragment();
 
-        Set<String> usedNames = new HashSet<String>();
         expandCopyFragments(mainFrag, copyFrag, usedNames);
 
         copy.getMainFragment().simplify();
@@ -120,12 +132,14 @@ public class RuleDictionary
     }
 
     /**
-     * When expanding a rule, copy all of the fragments from a given group into the new group. Make sure that
-     * {@link NamedFragment} instances don't get recursively expanded infinitely.
+     * When expanding a rule, copy all of the fragments from a given group into
+     * the new group. Make sure that {@link NamedFragment} instances don't get
+     * recursively expanded infinitely.
      *
      * @param from the source group
      * @param to the target group
-     * @param usedNames the set of rule names that have already been used on the call stack.
+     * @param usedNames the names that we've seen so far, so that recursive
+     *            rules don't cause infinite recursion
      */
     private void expandCopyFragments(GroupFragment from, GroupFragment to, Set<String> usedNames)
     {
@@ -133,11 +147,7 @@ public class RuleDictionary
 
         for (RuleFragment rf : from.getFragments())
         {
-            if (rf instanceof NamedFragment)
-            {
-                expandCopyNamed((NamedFragment) rf, to, usedNames);
-            }
-            else if (rf instanceof GroupFragment)
+            if (rf instanceof GroupFragment)
             {
                 try
                 {
@@ -155,6 +165,10 @@ public class RuleDictionary
                     throw new IllegalStateException("Unable to instantiate GroupFragment class: " + rf.getClass(), ex); //$NON-NLS-1$
                 }
             }
+            else if (rf instanceof NamedFragment)
+            {
+                expandCopyNamed(to, (NamedFragment) rf, usedNames);
+            }
             else
             {
                 to.append((RuleFragment) rf.clone());
@@ -162,37 +176,55 @@ public class RuleDictionary
         }
     }
 
-    /**
-     * Copy an expanded {@link NamedFragment} instance by replacing it with a copy of the contents of its resolved rule.
-     *
-     * @param named the named fragment to expand and copy
-     * @param to the target group to add to
-     * @param usedNames a set of names of rules that have already been used on the call stack, that should not be
-     *            expanded again. Instances of these are replaced by {@link WildcardFragment}s instead.
-     */
-    private void expandCopyNamed(NamedFragment named, GroupFragment to, Set<String> usedNames)
+    private void expandCopyNamed(GroupFragment to, NamedFragment named, Set<String> usedNames)
     {
-        Rule rule = this.getRule(named.getName());
-
-        if (usedNames.contains(named.getName()) || rule == null)
+        Rule resolvedRule = named.getResolvedRule();
+        String name = named.getName();
+        if (resolvedRule == null)
         {
-            String reason = named.getName() + ((rule == null) ? " does not exist" : " recurses"); //$NON-NLS-1$//$NON-NLS-2$
-            if (!RuleDictionary.warned.contains(named.getName()))
+            String reason = name + " does not exist"; //$NON-NLS-1$
+            if (!RuleDictionary.warned.contains(name))
             {
                 System.err.println("; Warning: rule " + reason); //$NON-NLS-1$
-                RuleDictionary.warned.add(named.getName());
+                RuleDictionary.warned.add(name);
             }
 
             WildcardFragment wildcard = new WildcardFragment(reason);
             to.append(wildcard);
-            return;
         }
+        else if (resolvedRule.isInlineRule())
+        {
+            this.expandCopyInlineNamed(named, to, usedNames);
+        }
+        else if (usedNames.contains(name))
+        {
+            to.append(named);
+        }
+        else
+        {
+            NamedFragment namedCopy = new NamedFragment(name);
+            usedNames.add(name);
+            namedCopy.resolve(this.expandRule(resolvedRule, usedNames));
+            usedNames.remove(name);
+            to.append(namedCopy);
+        }
+    }
+
+    /**
+     * Copy an expanded {@link NamedFragment} instance by replacing it with a
+     * copy of the contents of its resolved rule.
+     *
+     * @param named the named fragment to expand and copy
+     * @param to the target group to add to
+     * @param usedNames for tracking recursion
+     */
+    private void expandCopyInlineNamed(NamedFragment named, GroupFragment to, Set<String> usedNames)
+    {
+        Rule rule = this.getRule(named.getName());
 
         GroupFragment main = rule.getMainFragment();
         try
         {
-            usedNames.add(named.getName());
-
             GroupFragment inner = main.getClass().newInstance();
             this.expandCopyFragments(main, inner, usedNames);
 
@@ -212,7 +244,8 @@ public class RuleDictionary
     }
 
     /**
-     * Finds a rule by name. Looks in the standard predefined rule dictionary if none are found in this dictionary.
+     * Finds a rule by name. Looks in the standard predefined rule dictionary if
+     * none are found in this dictionary.
      *
      * @param name the name of the rule, which is case-insensitive.
      * @return the rule that was found, or null
@@ -255,8 +288,10 @@ public class RuleDictionary
             out.print(r.toString());
             try
             {
-                // rule expansion is helpful to ensure that the rule is properly simplified for printing as a
-                // regular expression. It means that you get [a-zA-Z] rather than (?:[a-z]|[A-Z])
+                // rule expansion is helpful to ensure that the rule is properly
+                // simplified for printing as a
+                // regular expression. It means that you get [a-zA-Z] rather
+                // than (?:[a-z]|[A-Z])
                 Rule expanded = this.expandRule(r);
                 out.print(" ; Expanded: "); //$NON-NLS-1$
                 out.print(expanded.toString());
@@ -277,8 +312,8 @@ public class RuleDictionary
      *
      * @param name the name of the rule
      * @return a regular expression
-     * @throws RuleResolutionException If the rule can't be found or the rule contains references to rules that can't be
-     *             found.
+     * @throws RuleResolutionException If the rule can't be found or the rule
+     *             contains references to rules that can't be found.
      */
     public String ruleToRegex(String name) throws RuleResolutionException
     {
@@ -319,8 +354,9 @@ public class RuleDictionary
     }
 
     /**
-     * Parse an ABNF file. Loads all rules from the file into this dictionary. Once a complete set of ABNF files are
-     * loaded, callers should call {@link #resolve()} to ensure that all rules are resolved.
+     * Parse an ABNF file. Loads all rules from the file into this dictionary.
+     * Once a complete set of ABNF files are loaded, callers should call
+     * {@link #resolve()} to ensure that all rules are resolved.
      *
      * @param abnf a specialized reader instance, used by this package only.
      * @throws IOException when there are errors reading from the stream.
@@ -344,7 +380,8 @@ public class RuleDictionary
                 throw new AbnfParseException("Whitespace before first rule.", abnf); //$NON-NLS-1$
             }
 
-            // if this is a new line and there is no leading whitespace: new rule
+            // if this is a new line and there is no leading whitespace: new
+            // rule
             currentRule = this.continueRule(ws, currentRule);
 
             if (currentRule == null)
@@ -366,17 +403,19 @@ public class RuleDictionary
     }
 
     /**
-     * Used by {@link #parse(AbnfReader)} to check whether a new rule needs to be started.
+     * Used by {@link #parse(AbnfReader)} to check whether a new rule needs to
+     * be started.
      *
      * @param abnf the reader to read
-     * @param seqStack a stack of {@link SequenceFragment} representing the current position in the current set of
-     *            nested sequences
-     * @param name the name of the new rule that is either being started or continued
+     * @param seqStack a stack of {@link SequenceFragment} representing the
+     *            current position in the current set of nested sequences
+     * @param name the name of the new rule that is either being started or
+     *            continued
      * @return the rule that is either being continued or started
      * @throws IOException when there are IO troubles
      */
     private Rule startNewRule(AbnfReader abnf, Deque<SequenceFragment> seqStack, String name) throws IOException,
-                    AbnfParseException
+    AbnfParseException
     {
         abnf.gobbleWhitespace();
         if (abnf.read() != '=')
@@ -405,10 +444,12 @@ public class RuleDictionary
     }
 
     /**
-     * Check if the new line indicates a continuation of the previous rule, and, if it does, keep going.
+     * Check if the new line indicates a continuation of the previous rule, and,
+     * if it does, keep going.
      *
      * @param ws the amount of whitespace skipped at the start of the line
-     * @param currentRule the rule from the previous line, or null if there was none
+     * @param currentRule the rule from the previous line, or null if there was
+     *            none
      * @return currentRule, as passed in, or null if a new rule must be started
      */
     private Rule continueRule(int ws, Rule currentRule)
@@ -426,19 +467,19 @@ public class RuleDictionary
      * Parses fragments from an ABNF file.
      *
      * @param abnf the reader to use
-     * @param seqStack a stack of {@link SequenceFragment} representing the current position in the current set of
-     *            nested sequences
+     * @param seqStack a stack of {@link SequenceFragment} representing the
+     *            current position in the current set of nested sequences
      * @throws IOException if there are IO troubles
      * @throws AbnfParseException if unexpected characters are found
      */
     private void parseFragments(AbnfReader abnf, Deque<SequenceFragment> seqStack) throws IOException,
-                    AbnfParseException
+    AbnfParseException
     {
         while (!abnf.eof())
         {
             abnf.gobbleWhitespace();
 
-            OccurenceRange range = OccurenceRange.parse(abnf);
+            OccurrenceRange range = OccurrenceRange.parse(abnf);
 
             RuleFragment newFrag = null;
 
@@ -481,7 +522,7 @@ public class RuleDictionary
             {
                 abnf.read();
                 SequenceFragment seqFrag = new SequenceFragment();
-                seqFrag.setOccurences(new OccurenceRange(0, range.getMax()));
+                seqFrag.setOccurences(new OccurrenceRange(0, range.getMax()));
                 seqStack.peek().nest(seqFrag);
                 seqStack.push(seqFrag);
             }
@@ -491,7 +532,7 @@ public class RuleDictionary
                 seqStack.pop();
             }
             else
-            // named rule
+                // named rule
             {
                 String name = abnf.parseName();
                 if (name.length() == 0)
@@ -512,12 +553,13 @@ public class RuleDictionary
     }
 
     /**
-     * Special processing for choice fragments. When a '/' character is found, this function wraps the top of the
-     * sequence stack in a {@link ChoiceFragment} and starts from a new {@link SequenceFragment} that is added to that
-     * choice.
+     * Special processing for choice fragments. When a '/' character is found,
+     * this function wraps the top of the sequence stack in a
+     * {@link ChoiceFragment} and starts from a new {@link SequenceFragment}
+     * that is added to that choice.
      *
-     * @param seqStack a stack of {@link SequenceFragment} representing the current position in the current set of
-     *            nested sequences
+     * @param seqStack a stack of {@link SequenceFragment} representing the
+     *            current position in the current set of nested sequences
      */
     private void handleChoice(Deque<SequenceFragment> seqStack)
     {

@@ -3,12 +3,12 @@ package net.abnf2regex;
 import java.io.IOException;
 import java.io.StringReader;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Do some tests of the overall parsing and regular expression generation capabilities.
+ * Do some tests of the overall parsing and regular expression generation
+ * capabilities.
  */
 @SuppressWarnings("nls")
 public class OverallTests
@@ -39,7 +39,7 @@ public class OverallTests
         try
         {
             Assert.assertTrue("resolve " + name, this.rd.resolve());
-            Assert.assertEquals("regex " + name, regex, this.rd.ruleToRegex(name));
+            Assert.assertEquals("regex " + name, namedGroup(name, regex), this.rd.ruleToRegex(name));
             if (abnf != null)
             {
                 Assert.assertEquals("abnf " + name, abnf, this.rd.getRule(name).toAbnf());
@@ -51,10 +51,16 @@ public class OverallTests
         }
     }
 
+    private String namedGroup(String name, String regex)
+    {
+        return "(?P<" + name + '>' + regex + ")";
+    }
+
     /**
      * Test that a given pattern produces a given regular expression.
      *
-     * @param name A name that is given to the rule, so that we know what went wrong, if something does go wrong...
+     * @param name A name that is given to the rule, so that we know what went
+     *            wrong, if something does go wrong...
      * @param rule The ABNF rule
      * @param regex The expected regular expression
      */
@@ -66,7 +72,8 @@ public class OverallTests
     /**
      * Test that a given pattern produces a given regular expression.
      *
-     * @param name A name that is given to the rule, so that we know what went wrong, if something does go wrong...
+     * @param name A name that is given to the rule, so that we know what went
+     *            wrong, if something does go wrong...
      * @param rule The ABNF rule
      * @param regex The expected regular expression
      * @param abnf the expected simplified ABNF output
@@ -203,24 +210,31 @@ public class OverallTests
     @Test
     public void testSequences()
     {
-//        test("literals", "%x31 %x32", "12", "%x31.32");
-//        test("nospace", "%x31%x32", "12", "%x31.32");
-//        test("repeat", "%x31 %x31", "11", "%x31.31");
-//        test("strings", "\"1\" \"2\"", "12", "\"12\"");
-//        test("repeatstr", "\"1\" \"1\"", "11", "\"11\"");
-//        test("mixed", "\"1\" %x32", "12", "(\"1\" %x32)");
-//        test("recurrencesame", "2%x31 2%x32", "(?:12){2}", "2%x31.32");
-//        test("recurrencedifferent", "2%x31 3%x32", "1{2}2{3}", "(2%x31 3%x32)");
-//        test("recurrencesamestr", "2\"1\" 2\"2\"", "(?:12){2}", "2\"12\"");
-//        test("recurrencedifferentstr", "2\"1\" 3\"2\"", "1{2}2{3}", "(2\"1\" 3\"2\")");
-//
-//        test("groupedseq1", "2%x31 2%x32 3%x33", "(?:12){2}3{3}", "(2%x31.32 3%x33)");
-//        test("groupedseq2", "2%x31 (2%x32 3%x33)", "(?:12){2}3{3}", "(2%x31.32 3%x33)");
-//        test("groupedseq3", "2%x31 4(2%x32 3%x33)", "1{2}(?:2{2}3{3}){4}", "(2%x31 4(2%x32 3%x33))");
-//        test("groupedseq4", "2%x31 2(%x32 3%x33)", "(?:123{3}){2}", "2(%x31.32 3%x33)");
+        // test("literals", "%x31 %x32", "12", "%x31.32");
+        // test("nospace", "%x31%x32", "12", "%x31.32");
+        // test("repeat", "%x31 %x31", "11", "%x31.31");
+        // test("strings", "\"1\" \"2\"", "12", "\"12\"");
+        // test("repeatstr", "\"1\" \"1\"", "11", "\"11\"");
+        // test("mixed", "\"1\" %x32", "12", "(\"1\" %x32)");
+        // test("recurrencesame", "2%x31 2%x32", "(?:12){2}", "2%x31.32");
+        // test("recurrencedifferent", "2%x31 3%x32", "1{2}2{3}",
+        // "(2%x31 3%x32)");
+        // test("recurrencesamestr", "2\"1\" 2\"2\"", "(?:12){2}", "2\"12\"");
+        // test("recurrencedifferentstr", "2\"1\" 3\"2\"", "1{2}2{3}",
+        // "(2\"1\" 3\"2\")");
+        //
+        // test("groupedseq1", "2%x31 2%x32 3%x33", "(?:12){2}3{3}",
+        // "(2%x31.32 3%x33)");
+        // test("groupedseq2", "2%x31 (2%x32 3%x33)", "(?:12){2}3{3}",
+        // "(2%x31.32 3%x33)");
+        // test("groupedseq3", "2%x31 4(2%x32 3%x33)", "1{2}(?:2{2}3{3}){4}",
+        // "(2%x31 4(2%x32 3%x33))");
+        // test("groupedseq4", "2%x31 2(%x32 3%x33)", "(?:123{3}){2}",
+        // "2(%x31.32 3%x33)");
         test("groupedseq5", "2(2%x31 %x32) 2%x33", "(?:1{2}23){2}", "2(2%x31 %x32.33)");
-//        test("nestedoptional", "[[DIGIT \":\"] DIGIT]", "(?:(?:\\d:)?\\d)?");
-//        test("sequencefollowschoice", "%x31 ( %x32 / %x33 ) %x34", "1[23]4", "(%x31 (%x32 / %x33) %x34)");
+        // test("nestedoptional", "[[DIGIT \":\"] DIGIT]", "(?:(?:\\d:)?\\d)?");
+        // test("sequencefollowschoice", "%x31 ( %x32 / %x33 ) %x34", "1[23]4",
+        // "(%x31 (%x32 / %x33) %x34)");
     }
 
     /**
@@ -243,13 +257,14 @@ public class OverallTests
     }
 
     /**
-     * Test the combination of choices and sequences in more complex combinations.
+     * Test the combination of choices and sequences in more complex
+     * combinations.
      */
     @Test
     public void testCombinations()
     {
         test("rulename", "ALPHA *(ALPHA / DIGIT / \"-\")", "[A-Za-z][\\-\\dA-Za-z]*",
-             "(ALPHA *(ALPHA / DIGIT / \"-\"))");
+                "(ALPHA *(ALPHA / DIGIT / \"-\"))");
         test("seqchoice", "(%x31 / %x32) (%x33 / %x34)", "[12][34]", "((%x31 / %x32) (%x33 / %x34))");
         test("precedence", "%x31 2%x32 / 3%x33", "(?:12{2}|3{3})", "((%x31 2%x32) / 3%x33)");
         test("precedence2", "2%x31 2%x32 / 3%x33", "(?:(?:12){2}|3{3})", "(2%x31.32 / 3%x33)");
@@ -273,6 +288,15 @@ public class OverallTests
         test("name", "DIGIT", "\\d");
         test("twoname", "2DIGIT", "\\d{2}");
         test("twonameseq", "DIGIT DIGIT", "\\d{2}", "2DIGIT");
+    }
+
+    /**
+     * Test named groups and recursive references to them.
+     */
+    @Test
+    public void testNamedGroups()
+    {
+        test("grouped", "(%x31 grouped)", "1(?P=grouped)");
     }
 
     /**
@@ -307,7 +331,7 @@ public class OverallTests
         test("equalslashnotfound", "%x31\r\nequalslashnf =/ %x32", "1", "%x31");
         try
         {
-            Assert.assertEquals("2", this.rd.ruleToRegex("equalslashnf"));
+            Assert.assertEquals(namedGroup("equalslashnf", "2"), this.rd.ruleToRegex("equalslashnf"));
             Assert.assertEquals("%x32", this.rd.getRule("equalslashnf").toAbnf());
         }
         catch (RuleResolutionException ex)
@@ -315,9 +339,9 @@ public class OverallTests
             Assert.fail(ex.getMessage());
         }
         test("equalslashprecedence", "%x31 %x32\r\nequalslashprecedence =/ %x33 %x34", "(?:12|34)",
-             "(%x31.32 / %x33.34)");
+                "(%x31.32 / %x33.34)");
         test("equalslashprecedence2", "3%x31 / 3%x32\r\nequalslashprecedence2 =/ 4%x33 / 4%x34", "(?:[12]{3}|[34]{4})",
-             "(3(%x31 / %x32) / 4(%x33 / %x34))");
+                "(3(%x31 / %x32) / 4(%x33 / %x34))");
     }
 
     /**
@@ -326,8 +350,9 @@ public class OverallTests
     @Test
     public void testRecursion()
     {
-        test("direct", "direct", ".*");
-        test("indirect", "other\r\nother = indirect", ".*", "other");
+        test("direct", "direct", "(?P=direct)");
+        // hack to install two rules
+        test("indirect", "other\r\nother = indirect", "(?P<other>(?P=indirect))", "other");
     }
 
     /**

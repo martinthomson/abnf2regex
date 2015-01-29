@@ -10,13 +10,15 @@ public class RuleResolutionExceptionTest
 {
 
     /**
-     * Test method for {@link net.abnf2regex.RuleResolutionException#RuleResolutionException(java.lang.String)}.
+     * Test method for
+     * {@link net.abnf2regex.RuleResolutionException#RuleResolutionException(java.lang.String)}
+     * .
      */
     @Test
     public void testInitiation()
     {
         String name = "foo"; //$NON-NLS-1$
-        RuleResolutionException rre = new RuleResolutionException(name );
+        RuleResolutionException rre = new RuleResolutionException(name);
         Assert.assertEquals(name, rre.getMessage());
     }
 }

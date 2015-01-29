@@ -22,11 +22,13 @@ public class StringFragment extends RuleFragment
     }
 
     /**
-     * Parse from ABNF. It is assumed that the caller has found a '"' character using {@link AbnfReader#peek()}.
+     * Parse from ABNF. It is assumed that the caller has found a '"' character
+     * using {@link AbnfReader#peek()}.
      *
      * @param abnf the reader
-     * @throws IOException when there are IO errors, {@link java.io.EOFException} when the end of file occurs before the
-     *             end of the string
+     * @throws IOException when there are IO errors,
+     *             {@link java.io.EOFException} when the end of file occurs
+     *             before the end of the string
      */
     public static StringFragment parse(AbnfReader abnf) throws IOException
     {
@@ -40,34 +42,19 @@ public class StringFragment extends RuleFragment
         return new StringFragment(bld.toString());
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#buildAbnf(java.lang.StringBuilder)
-     */
     @Override
-    protected StringBuilder buildAbnf(StringBuilder bld)
+    protected StringBuilder buildAbnf(StringBuilder bld, Set<String> usedNames)
     {
         bld.append('"').append(this.str).append('"');
         return bld;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#needsAbnfParens()
-     */
     @Override
     protected boolean needsAbnfParens()
     {
         return false;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#buildRegex(java.lang.StringBuilder)
-     */
     @Override
     protected void buildRegex(PrintWriter pw, Set<String> usedNames)
     {

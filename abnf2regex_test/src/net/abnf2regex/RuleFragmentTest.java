@@ -20,7 +20,7 @@ import org.junit.Test;
 public class RuleFragmentTest
 {
     private RuleFragment rf;
-    private OccurenceRange or;
+    private OccurrenceRange or;
 
     /**
      * Build a default {@link RuleFragment}
@@ -29,7 +29,7 @@ public class RuleFragmentTest
     public void beforeAll()
     {
         this.rf = EasyMockHelper.fillAbstractWithMock(RuleFragment.class);
-        this.or = EasyMockHelper.createCompleteMock(OccurenceRange.class);
+        this.or = EasyMockHelper.createCompleteMock(OccurrenceRange.class);
         this.rf.setOccurences(this.or);
     }
 
@@ -48,7 +48,7 @@ public class RuleFragmentTest
             }
 
             @Override
-            protected StringBuilder buildAbnf(StringBuilder bld)
+            protected StringBuilder buildAbnf(StringBuilder bld, Set<String> used)
             {
                 return null;
             }
@@ -80,7 +80,8 @@ public class RuleFragmentTest
     }
 
     /**
-     * Test whether or not parentheses are needed, for this class, this depends on the occurence range.
+     * Test whether or not parentheses are needed, for this class, this depends
+     * on the occurence range.
      */
     @Test
     public void testNeedsParens()
@@ -106,25 +107,33 @@ public class RuleFragmentTest
     public void testToAbnfOrString()
     {
         List<Capture<StringBuilder>> sameStringBufList = new ArrayList<Capture<StringBuilder>>();
+        List<Capture<Set<String>>> sameSetList = new ArrayList<Capture<Set<String>>>();
         EasyMock.checkOrder(this.or, true);
 
         for (int i = 0; i < 2; ++i)
         {
             Capture<StringBuilder> sameStringBuf = new Capture<StringBuilder>();
             sameStringBufList.add(sameStringBuf);
+            Capture<Set<String>> sameSet = new Capture<Set<String>>();
+            sameSetList.add(sameSet);
 
             EasyMock.expect(Boolean.valueOf(this.or.isOnce())).andReturn(Boolean.TRUE);
-            EasyMock.expect(this.or.addAbnfLeadin(sameStringBuf.capture(), EasyMock.eq(false))).andAnswer(sameStringBuf);
-            EasyMock.expect(this.rf.buildAbnf(sameStringBuf.capture())).andAnswer(sameStringBuf);
+            EasyMock.expect(this.or.addAbnfLeadin(sameStringBuf.capture(), EasyMock.eq(false)))
+                    .andAnswer(sameStringBuf);
+            EasyMock.expect(this.rf.buildAbnf(sameStringBuf.capture(), sameSet.capture())).andAnswer(sameStringBuf);
             EasyMock.expect(this.or.addAbnfTrail(sameStringBuf.capture(), EasyMock.eq(false))).andAnswer(sameStringBuf);
         }
         EasyMock.replay(this.rf, this.or);
 
-        String abnf = this.rf.toAbnf();
+        HashSet<String> usedNames = new HashSet<String>();
+        String abnf = this.rf.toAbnf(usedNames);
         Assert.assertEquals(sameStringBufList.get(0).getValue().toString(), abnf);
+        Assert.assertSame(usedNames, sameSetList.get(0).getValue());
+        Assert.assertTrue(usedNames.isEmpty());
 
         String str = this.rf.toString();
         Assert.assertEquals(sameStringBufList.get(1).getValue().toString(), str);
+        Assert.assertTrue(sameSetList.get(1).getValue().isEmpty());
         Assert.assertEquals(str, abnf);
 
         EasyMock.verify(this.rf, this.or);
@@ -139,17 +148,16 @@ public class RuleFragmentTest
         try
         {
             PrintWriter pw = EasyMock.createMock(PrintWriter.class);
-            Set<String> usedNames = new HashSet<String>();
             String regOccurs = "{n}"; //$NON-NLS-1$
 
             EasyMock.expect(Boolean.valueOf(this.or.isOnce())).andReturn(Boolean.TRUE).times(1, 2);
             EasyMock.expect(this.or.getRegexOccurences()).andReturn(regOccurs);
-            this.rf.buildRegex(pw, usedNames);
+            this.rf.buildRegex(pw, new HashSet<String>());
             pw.print(regOccurs);
 
             EasyMock.replay(this.rf, this.or, pw);
 
-            this.rf.writeRegex(pw, usedNames);
+            this.rf.writeRegex(pw);
 
             EasyMock.verify(this.rf, this.or, pw);
         }
@@ -168,19 +176,18 @@ public class RuleFragmentTest
         try
         {
             PrintWriter pw = EasyMock.createMock(PrintWriter.class);
-            Set<String> usedNames = new HashSet<String>();
             String regOccurs = "{n}"; //$NON-NLS-1$
 
             EasyMock.expect(Boolean.valueOf(this.or.isOnce())).andReturn(Boolean.FALSE).times(1, 2);
             pw.print("(?:"); //$NON-NLS-1$
-            this.rf.buildRegex(pw, usedNames);
+            this.rf.buildRegex(pw, new HashSet<String>());
             pw.print(")"); //$NON-NLS-1$
             EasyMock.expect(this.or.getRegexOccurences()).andReturn(regOccurs);
             pw.print(regOccurs);
 
             EasyMock.replay(this.rf, this.or, pw);
 
-            this.rf.writeRegex(pw, usedNames);
+            this.rf.writeRegex(pw);
 
             EasyMock.verify(this.rf, this.or, pw);
         }

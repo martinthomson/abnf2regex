@@ -1,7 +1,8 @@
 package net.abnf2regex;
 
 /**
- * A range of characters, typically as a result of a literal expression like %61-66.
+ * A range of characters, typically as a result of a literal expression like
+ * %61-66.
  */
 public class CharRange implements Comparable<CharRange>
 {
@@ -96,8 +97,8 @@ public class CharRange implements Comparable<CharRange>
     }
 
     /**
-     * Compare based on the start of the range, followed by the end of the range. This results in a-a &lt; a-b &lt; b-b
-     * &lt; b-c.
+     * Compare based on the start of the range, followed by the end of the
+     * range. This results in a-a &lt; a-b &lt; b-b &lt; b-c.
      *
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
@@ -119,8 +120,8 @@ public class CharRange implements Comparable<CharRange>
      */
     public CharRange merge(CharRange other)
     {
-        if ((this.start <= other.start && this.end + 1 >= other.start) ||
-            (other.start <= this.start && other.end + 1 >= this.start))
+        if ((this.start <= other.start && this.end + 1 >= other.start)
+                || (other.start <= this.start && other.end + 1 >= this.start))
         {
             return new CharRange(Math.min(this.start, other.start), Math.max(this.end, other.end));
         }

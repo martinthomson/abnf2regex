@@ -7,8 +7,9 @@ import java.util.Deque;
 import java.util.Iterator;
 
 /**
- * A rule fragment that contains one or more other rule fragments. The extending classes, {@link SequenceFragment} and
- * {@link ChoiceFragment}, define behaviour specific to the method of combining the child fragments.
+ * A rule fragment that contains one or more other rule fragments. The extending
+ * classes, {@link SequenceFragment} and {@link ChoiceFragment}, define
+ * behaviour specific to the method of combining the child fragments.
  */
 public abstract class GroupFragment extends RuleFragment
 {
@@ -36,7 +37,7 @@ public abstract class GroupFragment extends RuleFragment
     }
 
     /**
-     * Get all the fragments in this grouop.
+     * Get all the fragments in this group.
      *
      * @return an unmodifiable copy of the fragments owned by this group.
      */
@@ -46,8 +47,9 @@ public abstract class GroupFragment extends RuleFragment
     }
 
     /**
-     * adds a new group to the end of the group, without invoking any simplification. The group is only appended to the
-     * group. Used in parsing to prevent empy groups from disappearing.
+     * adds a new group to the end of the group, without invoking any
+     * simplification. The group is only appended to the group. Used in parsing
+     * to prevent empty groups from disappearing.
      *
      * @param frag The new group to add.
      */
@@ -57,8 +59,9 @@ public abstract class GroupFragment extends RuleFragment
     }
 
     /**
-     * Removes unnecessary groupings from a set recursively. For instance, groups that have unitary cardinality are
-     * removed from their enclosing group if it is of the same type.
+     * Removes unnecessary groupings from a set recursively. For instance,
+     * groups that have unitary cardinality are removed from their enclosing
+     * group if it is of the same type.
      *
      * @see #canCollapse(GroupFragment)
      */
@@ -131,7 +134,8 @@ public abstract class GroupFragment extends RuleFragment
     }
 
     /**
-     * If all fragments have the same number of occurrences, move that number up to this group, if possible.
+     * If all fragments have the same number of occurrences, move that number up
+     * to this group, if possible.
      */
     private void moveOccurencesToGroup()
     {
@@ -140,35 +144,37 @@ public abstract class GroupFragment extends RuleFragment
             return;
         }
         Iterator<RuleFragment> it = this.fragments.iterator();
-        OccurenceRange range = it.next().getOccurences();
-        OccurenceRange product = this.getOccurences().multiply(range);
+        OccurrenceRange range = it.next().getOccurences();
+        OccurrenceRange product = this.getOccurences().multiply(range);
         if (product != null)
         {
             if (!it.hasNext())
             {
-                // For a group of one, move the occurences downwards
-                this.setOccurences(OccurenceRange.ONCE);
+                // For a group of one, move the occurrences downwards
+                this.setOccurences(OccurrenceRange.ONCE);
                 this.fragments.getFirst().setOccurences(product);
             }
             else
             {
-                // For a group of two or more, move the occurences upwards
+                // For a group of two or more, move the occurrences upwards
                 moveOccurencesUp(it, range, product);
             }
         }
     }
 
     /**
-     * Move occurence ranges up, if all fragments have the same range (and there are more than one fragment in this
-     * group).
+     * Move occurrence ranges up, if all fragments have the same range (and
+     * there are more than one fragment in this group).
      *
-     * @param it an iterator for the list of fragments, starting at the second one
+     * @param it an iterator for the list of fragments, starting at the second
+     *            one
      * @param range the range for the first fragment
-     * @param product the product of the first fragment range and the range on this
+     * @param product the product of the first fragment range and the range on
+     *            this
      */
-    private void moveOccurencesUp(Iterator<RuleFragment> it, OccurenceRange range, OccurenceRange product)
+    private void moveOccurencesUp(Iterator<RuleFragment> it, OccurrenceRange range, OccurrenceRange product)
     {
-        // For a group of more than one, move the occurences upwards
+        // For a group of more than one, move the occurrences upwards
         boolean allSame = true;
         while (it.hasNext())
         {
@@ -179,7 +185,7 @@ public abstract class GroupFragment extends RuleFragment
             this.setOccurences(product);
             for (RuleFragment rf : this.fragments)
             {
-                rf.setOccurences(OccurenceRange.ONCE);
+                rf.setOccurences(OccurrenceRange.ONCE);
             }
         }
     }

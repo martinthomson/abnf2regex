@@ -27,8 +27,9 @@ public class LiteralFragment extends RuleFragment
     }
 
     /**
-     * Parse out a literal sequence, starting from the leading '%', which is assumed to have been recognized by the
-     * caller using {@link AbnfReader#peek()}.
+     * Parse out a literal sequence, starting from the leading '%', which is
+     * assumed to have been recognised by the caller using
+     * {@link AbnfReader#peek()}.
      *
      * @param abnf the input reader
      * @throws IOException when reading fails for any reason
@@ -99,13 +100,8 @@ public class LiteralFragment extends RuleFragment
         this.ranges.add(range);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see net.abnf2regex.RuleFragment#buildAbnf(java.lang.StringBuilder)
-     */
     @Override
-    protected StringBuilder buildAbnf(StringBuilder bld)
+    protected StringBuilder buildAbnf(StringBuilder bld, Set<String> usedNames)
     {
         boolean cont = false;
         boolean started = false;
@@ -156,7 +152,8 @@ public class LiteralFragment extends RuleFragment
     }
 
     /**
-     * If this literal rule contains only one character range, return that range.
+     * If this literal rule contains only one character range, return that
+     * range.
      *
      * @return the single character range, or null
      */

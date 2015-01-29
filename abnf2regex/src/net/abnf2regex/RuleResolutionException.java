@@ -1,8 +1,8 @@
 package net.abnf2regex;
 
 /**
- * Thrown when ABNF contains rules that are referenced by name in other rules, but those rules are not properly
- * resolved.
+ * Thrown when ABNF contains rules that are referenced by name in other rules,
+ * but those rules are not properly resolved.
  *
  * @see RuleDictionary#resolve()
  */

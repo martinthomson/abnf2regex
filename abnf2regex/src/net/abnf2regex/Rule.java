@@ -12,9 +12,17 @@ public class Rule
 {
     /** The name of the rule. */
     private final String name;
-    /** A rule always has a sequence of fragments, used as a container for other fragments. */
+    /**
+     * A rule always has a sequence of fragments, used as a container for other
+     * fragments.
+     */
     private GroupFragment mainFragment = new SequenceFragment();
-    /** When recursively creating regular expressions, this is used to indicate where recursion has occurred. */
+    /** Whether this is an inline rule (for which no grouping should be created */
+    private boolean inlineRule = false;
+    /**
+     * When recursively creating regular expressions, this is used to indicate
+     * where recursion has occurred.
+     */
     private static final Set<String> warned = new HashSet<String>();
 
     /**
@@ -31,7 +39,8 @@ public class Rule
      * Generate a regular expression from the rule.
      *
      * @return a String containing a regular expression.
-     * @throws RuleResolutionException when {@link NamedFragment} instances are unresolved.
+     * @throws RuleResolutionException when {@link NamedFragment} instances are
+     *             unresolved.
      */
     public String toRegex() throws RuleResolutionException
     {
@@ -51,10 +60,20 @@ public class Rule
         return this.name;
     }
 
+    public boolean isInlineRule()
+    {
+        return this.inlineRule;
+    }
+
+    public void setInlineRule(boolean inline)
+    {
+        this.inlineRule = inline;
+    }
+
     @Override
     public String toString()
     {
-        return this.getName() + " = " + this.toAbnf() + '\n'; //$NON-NLS-1$
+        return this.getName() + " = " + this.toAbnf(new HashSet<String>()) + '\n'; //$NON-NLS-1$
     }
 
     /**
@@ -74,18 +93,71 @@ public class Rule
      */
     public String toAbnf()
     {
-        return this.mainFragment.toAbnf();
+        return this.toAbnf(new HashSet<String>());
     }
 
     /**
-     * Write a regular expression to the specified {@link PrintWriter}, taking care not to recurse infinitely.
+     * Generate normalized ABNF text from the rule.
+     *
+     * @return a String containing an ABNF rule.
+     */
+    public String toAbnf(Set<String> usedNames)
+    {
+        return this.mainFragment.toAbnf(usedNames);
+    }
+
+    /**
+     * Write a regular expression to the specified {@link PrintWriter}, taking
+     * care not to recurse infinitely.
      *
      * @param pw the print writer to output to
-     * @param usedNames a set of rules that have already been called on this call stack.
-     * @throws RuleResolutionException when {@link NamedFragment} instances are unresolved.
+     * @param usedNames a set of rules that have already been called on this
+     *            call stack.
+     * @throws RuleResolutionException when {@link NamedFragment} instances are
+     *             unresolved.
      */
     public void writeRegex(PrintWriter pw, Set<String> usedNames) throws RuleResolutionException
     {
+        if (this.isInlineRule())
+        {
+            this.mainFragment.writeRegex(pw, usedNames);
+        }
+        else if (RegexSyntax.getCurrent().supportsNamedGroupings())
+        {
+            this.writeRegexRecursive(pw, usedNames);
+        }
+        else
+        {
+            this.writeRegexNonRecursive(pw, usedNames);
+        }
+    }
+
+    private void writeRegexRecursive(PrintWriter pw, Set<String> usedNames) throws RuleResolutionException
+    {
+        // For a recursive syntax (with named groupings in the syntax), we add
+        // to usedNames on the first use of a rule.
+        if (usedNames.contains(this.name))
+        {
+            pw.write("(?P=");
+            pw.write(this.name);
+            pw.write(')');
+        }
+        else
+        {
+            pw.write("(?P<");
+            pw.write(this.name);
+            pw.write('>');
+            usedNames.add(this.name);
+            this.mainFragment.writeRegex(pw, usedNames);
+            pw.write(')');
+        }
+    }
+
+    private void writeRegexNonRecursive(PrintWriter pw, Set<String> usedNames) throws RuleResolutionException
+    {
+        // For a non-recursive syntax, we add the name of the rule to the set on
+        // the way in and remove it on the way out.
+        // That ensures that no rule can reference itself recursively.
         if (usedNames.contains(this.getName()))
         {
             if (!Rule.warned.contains(this.getName()))
@@ -94,7 +166,7 @@ public class Rule
                 Rule.warned.add(this.getName());
             }
             RegexSyntax syntax = RegexSyntax.getCurrent();
-            pw.print(syntax.getWildcard() +  syntax.getOccurenceAny());
+            pw.print(syntax.getWildcard() + syntax.getOccurenceAny());
             return;
         }
 

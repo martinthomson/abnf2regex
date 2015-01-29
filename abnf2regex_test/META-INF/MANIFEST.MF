@@ -5,5 +5,5 @@ Bundle-SymbolicName: abnf2regex_test
 Bundle-Version: 1.0.0
 Bundle-Vendor: Martin Thomson
 Fragment-Host: abnf2regex;bundle-version="1.0.0"
-Require-Bundle: org.junit4,
- org.easymock, junitext
+Require-Bundle: org.easymock,org.junit
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
